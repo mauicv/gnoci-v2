@@ -1,0 +1,16 @@
+[project]
+name = "gnoci-v2"
+version = "0.1.0"
+description = "Simulation, Training and control code for gnoci v2"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "playground>=0.2.0",
+]
+
+[project.scripts]
+gnoci-v2 = "gnoci_v2:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
