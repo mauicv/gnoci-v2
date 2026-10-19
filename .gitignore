@@ -11,3 +11,9 @@ wheels/
 
 # Environment variables
 .env
+# Rendered rollouts
+videos/
+
+# Training logs
+logs/
+.tmp/
