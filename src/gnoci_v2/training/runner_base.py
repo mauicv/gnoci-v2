@@ -174,8 +174,7 @@ class BaseRunner(ABC):
             network_factory=network_factory,
             randomization_fn=self.randomizer,
             progress_fn=self.progress_callback,
-            log_training_metrics=True,
-            training_metrics_steps=2048,
+            log_training_metrics=False,
             policy_params_fn=self.policy_params_fn,
             restore_checkpoint_path=self.restore_checkpoint_path,
         )
