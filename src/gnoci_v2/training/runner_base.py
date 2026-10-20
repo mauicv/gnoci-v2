@@ -10,6 +10,8 @@ import functools
 from datetime import datetime
 from flax.training import orbax_utils
 from tensorboardX import SummaryWriter
+import imageio_ffmpeg
+import mediapy
 
 import os
 from brax.training.agents.ppo import networks as ppo_networks, train as ppo
@@ -41,6 +43,9 @@ class BaseRunner(ABC):
         self.obs_size = None
         self.num_timesteps = args.num_timesteps
         self.restore_checkpoint_path = None
+        # Control steps per checkpoint video; 0 disables videos.
+        self.video_steps = getattr(args, "video_steps", 500)
+        self._rollout_fns = None
         
         # CACHE STUFF
         os.makedirs(".tmp", exist_ok=True)
@@ -82,6 +87,8 @@ class BaseRunner(ABC):
         path = f"{self.output_dir}/{d}_{current_step}"
         print(f"Saving checkpoint (step: {current_step}): {path}")
         orbax_checkpointer.save(path, params, force=True, save_args=save_args)
+        if self.video_steps > 0:
+            self.render_rollout(make_policy, params, f"{path}.mp4")
         # onnx_export_path = f"{self.output_dir}/{d}_{current_step}.onnx"
         # export_onnx(
         #     params,
@@ -90,6 +97,37 @@ class BaseRunner(ABC):
         #     self.obs_size,  # may not work
         #     output_path=onnx_export_path
         # )
+
+    def render_rollout(self, make_policy, params, path, num_steps=None, seed=0):
+        """Roll out the policy deterministically in eval_env and save an mp4."""
+        num_steps = num_steps or self.video_steps
+        if self._rollout_fns is None:
+            self._rollout_fns = (
+                jax.jit(self.eval_env.reset),
+                jax.jit(self.eval_env.step),
+                # Params are an argument so this compiles once, not per checkpoint.
+                jax.jit(lambda p, obs, key: make_policy(p, deterministic=True)(obs, key)),
+            )
+        reset_fn, step_fn, policy_fn = self._rollout_fns
+
+        rng, reset_rng = jax.random.split(jax.random.PRNGKey(seed))
+        state = reset_fn(reset_rng)
+        trajectory = [state]
+        for _ in range(num_steps):
+            rng, act_rng = jax.random.split(rng)
+            action, _ = policy_fn(params, state.obs, act_rng)
+            state = step_fn(state, action)
+            trajectory.append(state)
+            if state.done:
+                break
+
+        frames = self.eval_env.render(trajectory, height=480, width=640, camera="track")
+        mediapy.set_ffmpeg(imageio_ffmpeg.get_ffmpeg_exe())
+        mediapy.write_video(path, frames, fps=1.0 / self.eval_env.dt)
+        print(
+            f"Saved rollout video ({len(trajectory) - 1} steps,"
+            f" command {trajectory[0].info['command']}): {path}"
+        )
 
     def train(self) -> None:
         self.ppo_params = locomotion_params.brax_ppo_config(

@@ -56,6 +56,12 @@ def main() -> None:
         default=None,
         help="Resume training from this checkpoint",
     )
+    parser.add_argument(
+        "--video_steps",
+        type=int,
+        default=500,
+        help="Control steps in the rollout video saved with each checkpoint (0 disables)",
+    )
     # parser.add_argument(
     #     "--debug", action="store_true", help="Run in debug mode with minimal parameters"
     # )
