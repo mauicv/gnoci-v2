@@ -65,9 +65,9 @@ def default_config() -> config_dict.ConfigDict:
               dof_pos_limits=-1.0,
               pose=-1.0,
           ),
-          tracking_sigma=0.1,
+          tracking_sigma=0.025,
           max_foot_height=0.03,
-          base_height_target=0.5,
+          base_height_target=0.27,
       ),
       push_config=config_dict.create(
           enable=True,
@@ -579,7 +579,8 @@ class GnociV2Joystick(GnociV2Env):
     cost = jp.sum(
         jp.abs(qpos[self._hip_indices] - self._default_pose[self._hip_indices])
     )
-    cost *= jp.abs(cmd[1]) > 0.1
+    # Allow lateral deviation when stepping sideways.
+    cost *= jp.abs(cmd[1]) <= 0.1
     return cost
 
   def _cost_joint_deviation_knee(self, qpos: jax.Array) -> jax.Array:
@@ -598,9 +599,9 @@ class GnociV2Joystick(GnociV2Env):
       self, data: mjx.Data, contact: jax.Array, info: dict[str, Any]
   ) -> jax.Array:
     del info  # Unused.
-    body_vel = self.get_global_linvel(data)[:2]
-    reward = jp.sum(jp.linalg.norm(body_vel, axis=-1) * contact)
-    return reward
+    feet_vel = data.sensordata[self._foot_linvel_sensor_adr]
+    vel_xy_norm_sq = jp.sum(jp.square(feet_vel[..., :2]), axis=-1)
+    return jp.sum(vel_xy_norm_sq * contact)
 
   def _cost_feet_clearance(
       self, data: mjx.Data, info: dict[str, Any]
