@@ -60,7 +60,7 @@ def main() -> None:
         "--video_steps",
         type=int,
         default=500,
-        help="Control steps in the rollout video saved with each checkpoint (0 disables)",
+        help="Control steps in the rollout video saved with each checkpoint, split between forward, sideways and turn segments (0 disables)",
     )
     # parser.add_argument(
     #     "--debug", action="store_true", help="Run in debug mode with minimal parameters"

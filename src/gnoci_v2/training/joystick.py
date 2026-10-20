@@ -65,8 +65,9 @@ def default_config() -> config_dict.ConfigDict:
               dof_pos_limits=-1.0,
               pose=-1.0,
           ),
-          tracking_sigma=0.025,
-          max_foot_height=0.03,
+          tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
+          ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
+          max_foot_height=0.05,
           base_height_target=0.27,
       ),
       push_config=config_dict.create(
@@ -515,7 +516,7 @@ class GnociV2Joystick(GnociV2Env):
       ang_vel: jax.Array,
   ) -> jax.Array:
     ang_vel_error = jp.square(commands[2] - ang_vel[2])
-    return jp.exp(-ang_vel_error / self._config.reward_config.tracking_sigma)
+    return jp.exp(-ang_vel_error / self._config.reward_config.ang_tracking_sigma)
 
   # Base-related rewards.
 
@@ -653,7 +654,7 @@ class GnociV2Joystick(GnociV2Env):
     foot_z = foot_pos[..., -1]
     rz = gait.get_rz(phase, swing_height=foot_height)
     error = jp.sum(jp.square(foot_z - rz))
-    reward = jp.exp(-error / 0.01)
+    reward = jp.exp(-error / 0.001)
     # TODO(kevin): Ensure no movement at 0 command.
     # cmd_norm = jp.linalg.norm(commands)
     # reward *= cmd_norm > 0.1  # No reward for zero commands.

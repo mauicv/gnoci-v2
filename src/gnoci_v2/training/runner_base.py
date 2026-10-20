@@ -98,8 +98,18 @@ class BaseRunner(ABC):
         #     output_path=onnx_export_path
         # )
 
+    # (name, [vx, vy, yaw_rate]) commands shown one after another in rollout videos.
+    VIDEO_COMMANDS = (
+        ("forward", [0.2, 0.0, 0.0]),
+        ("sideways", [0.0, 0.15, 0.0]),
+        ("turn", [0.0, 0.0, 0.8]),
+    )
+
     def render_rollout(self, make_policy, params, path, num_steps=None, seed=0):
-        """Roll out the policy deterministically in eval_env and save an mp4."""
+        """Roll out the policy deterministically in eval_env and save an mp4.
+
+        The video steps are split evenly between the VIDEO_COMMANDS segments.
+        """
         num_steps = num_steps or self.video_steps
         if self._rollout_fns is None:
             self._rollout_fns = (
@@ -113,20 +123,31 @@ class BaseRunner(ABC):
         rng, reset_rng = jax.random.split(jax.random.PRNGKey(seed))
         state = reset_fn(reset_rng)
         trajectory = [state]
-        for _ in range(num_steps):
-            rng, act_rng = jax.random.split(rng)
-            action, _ = policy_fn(params, state.obs, act_rng)
-            state = step_fn(state, action)
-            trajectory.append(state)
+        segment_steps = num_steps // len(self.VIDEO_COMMANDS)
+        segments = []  # Names of the segments actually rendered.
+        for name, command in self.VIDEO_COMMANDS:
+            segments.append(name)
+            command = jax.numpy.array(command)
+            for _ in range(segment_steps):
+                # Override every step so the env's own resampling never kicks in.
+                # The obs lags the new command by one step at segment boundaries.
+                state = state.replace(info={**state.info, "command": command})
+                rng, act_rng = jax.random.split(rng)
+                action, _ = policy_fn(params, state.obs, act_rng)
+                state = step_fn(state, action)
+                trajectory.append(state)
+                if state.done:
+                    break
             if state.done:
                 break
 
         frames = self.eval_env.render(trajectory, height=480, width=640, camera="track")
         mediapy.set_ffmpeg(imageio_ffmpeg.get_ffmpeg_exe())
         mediapy.write_video(path, frames, fps=1.0 / self.eval_env.dt)
+        fell = f", fell during {segments[-1]}" if state.done else ""
         print(
             f"Saved rollout video ({len(trajectory) - 1} steps,"
-            f" command {trajectory[0].info['command']}): {path}"
+            f" {segment_steps} per segment: {', '.join(segments)}{fell}): {path}"
         )
 
     def train(self) -> None:
