@@ -67,7 +67,7 @@ def default_config() -> config_dict.ConfigDict:
           ),
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
-          max_foot_height=0.05,
+          max_foot_height=0.04,
           base_height_target=0.27,
       ),
       push_config=config_dict.create(
