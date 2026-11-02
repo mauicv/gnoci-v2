@@ -33,107 +33,107 @@
       <freejoint name="floating_base" />
       <camera name="track" mode="trackcom" pos="0.6 -0.6 0.2" xyaxes="0.7071 0.7071 0 -0.1231 0.1231 0.9847" />
       <!-- Part imu -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="imu" material="imu_material" mass="0.002" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="imu" material="imu_material" mass="0.001" />
       <site name="imu" pos="-0.0126 0 0.0535" group="5" />
       <!-- Part head_battery -->
-      <geom type="mesh" class="visual" pos="-0.00959452 3.6e-06 0.013" quat="1 0 0 0" mesh="head_battery" material="head_battery_material" mass="0.07" />
+      <geom type="mesh" class="visual" pos="-0.00959452 3.6e-06 0.013" quat="1 0 0 0" mesh="head_battery" material="head_battery_material" mass="0.089" />
       <!-- Part head_fan -->
       <geom type="mesh" class="visual" pos="-0.0116139 0 0.0103055" quat="1 0 0 0" mesh="head_fan" material="head_fan_material" mass="0.006" />
       <!-- Part head_powerboard -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0.0011291 0.0121" quat="1 0 0 0" mesh="head_powerboard" material="head_powerboard_material" mass="0.01" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0.0011291 0.0121" quat="1 0 0 0" mesh="head_powerboard" material="head_powerboard_material" mass="0.021" />
       <!-- Part body_back -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="body_back" material="body_back_material" mass="0.048" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="body_back" material="body_back_material" mass="0.062" />
       <!-- Part head_button -->
-      <geom type="mesh" class="visual" pos="-0.0115795 -1.35e-05 0.01117" quat="1 0 0 0" mesh="head_button" material="head_button_material" mass="0.005" />
+      <geom type="mesh" class="visual" pos="-0.0115795 -1.35e-05 0.01117" quat="1 0 0 0" mesh="head_button" material="head_button_material" mass="0.013" />
       <!-- Part urt_2_controller -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0.0025 0.0121" quat="1 0 0 0" mesh="urt_2_controller" material="urt_2_controller_material" mass="0.015" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0.0025 0.0121" quat="1 0 0 0" mesh="urt_2_controller" material="urt_2_controller_material" mass="0.013" />
       <!-- Part head_voltmeter -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="head_voltmeter" material="head_voltmeter_material" mass="0.003" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="head_voltmeter" material="head_voltmeter_material" mass="0.004" />
       <!-- Part right_serv_1 -->
-      <geom type="mesh" class="visual" pos="-0.0114 0 0.0125" quat="1 0 0 0" mesh="right_serv_1" material="right_serv_1_material" mass="0.055" />
+      <geom type="mesh" class="visual" pos="-0.0114 0 0.0125" quat="1 0 0 0" mesh="right_serv_1" material="right_serv_1_material" mass="0.059" />
       <!-- Part left_serv_1 -->
-      <geom type="mesh" class="visual" pos="-0.0114 0 0.0125" quat="1 0 0 0" mesh="left_serv_1" material="left_serv_1_material" mass="0.055" />
+      <geom type="mesh" class="visual" pos="-0.0114 0 0.0125" quat="1 0 0 0" mesh="left_serv_1" material="left_serv_1_material" mass="0.059" />
       <!-- Part body_back_lid -->
-      <geom type="mesh" class="visual" pos="-0.011668 0 0.0121" quat="1 0 0 0" mesh="body_back_lid" material="body_back_lid_material" mass="0.018" />
+      <geom type="mesh" class="visual" pos="-0.011668 0 0.0121" quat="1 0 0 0" mesh="body_back_lid" material="body_back_lid_material" mass="0.015" />
       <!-- Part body_main -->
-      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="body_main" material="body_main_material" mass="0.19" />
+      <geom type="mesh" class="visual" pos="-0.0116139 0 0.0121" quat="1 0 0 0" mesh="body_main" material="body_main_material" mass="0.166" />
       <!-- Part head_r_pi -->
-      <geom type="mesh" class="visual" pos="-0.013451 0 0.0121" quat="1 0 0 0" mesh="head_r_pi" material="head_r_pi_material" mass="0.046" />
+      <geom type="mesh" class="visual" pos="-0.013451 0 0.0121" quat="1 0 0 0" mesh="head_r_pi" material="head_r_pi_material" mass="0.066" />
       <body name="left_hip" pos="0 0.024 0" quat="0.5 -0.5 -0.5 0.5">
         <joint class="sts3215" axis="0 0 -1" name="left_hip_lat" type="hinge" range="-0.23 0.628" />
         <!-- Part left_hip -->
-        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="left_hip" material="left_hip_material" mass="0.022" />
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="left_hip" material="left_hip_material" mass="0.018" />
         <!-- Part left_serv_2 -->
-        <geom type="mesh" class="visual" pos="-0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_2" material="left_serv_2_material" mass="0.055" />
+        <geom type="mesh" class="visual" pos="-0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_2" material="left_serv_2_material" mass="0.059" />
         <!-- Part left_serv_1_horn_back -->
-        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn_back" material="left_serv_1_horn_back_material" mass="0.002" />
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn_back" material="left_serv_1_horn_back_material" mass="0.001" />
         <!-- Part left_serv_1_horn -->
-        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn" material="left_serv_1_horn_material" mass="0.004" />
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn" material="left_serv_1_horn_material" mass="0.001" />
         <body name="left_upper_leg" pos="0.072788 -0.000195368 0.0321" quat="0.0984102 -0.700225 -0.0984102 0.700225">
           <joint class="sts3215" axis="0 0 -1" name="left_hip" type="hinge" range="-0.66 1.95" />
           <!-- Part left_serv_2_horn_back -->
-          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn_back" material="left_serv_2_horn_back_material" mass="0.002" />
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn_back" material="left_serv_2_horn_back_material" mass="0.001" />
           <!-- Part left_upper_leg -->
           <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_upper_leg" material="left_upper_leg_material" mass="0.026" />
           <!-- Part left_serv_3 -->
-          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.096018" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3" material="left_serv_3_material" mass="0.055" />
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.096018" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3" material="left_serv_3_material" mass="0.059" />
           <!-- Part left_serv_2_horn -->
-          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn" material="left_serv_2_horn_material" mass="0.004" />
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn" material="left_serv_2_horn_material" mass="0.001" />
           <body name="left_lower_leg" pos="-0 -0.12 -0.000382036" quat="0.970296 0 0 0.241922">
             <joint class="sts3215" axis="0 0 -1" name="left_knee" type="hinge" range="-1.51 2.36" />
             <!-- Part left_serv_3_horn -->
-            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn" material="left_serv_3_horn_material" mass="0.004" />
+            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn" material="left_serv_3_horn_material" mass="0.001" />
             <!-- Part left_foot_side -->
-            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_foot_side" material="left_foot_side_material" mass="0.013" />
+            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_foot_side" material="left_foot_side_material" mass="0.011" />
             <!-- Part left_foot_base -->
             <geom type="mesh" class="visual" pos="0.0215316 0.136413 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_foot_base" material="left_foot_base_material" mass="0.011" />
             <geom name="left_foot_base" type="box" class="foot" size="0.040744 0.017113 0.0065098" pos="0.02336 -0.15895 0.014788" quat="0.703233 -0.703233 0.0739128 -0.0739128" />
             <site name="l_foot" pos="0.01781 -0.16443 0.0111" group="5" />
             <!-- Part left_serv_3_horn_back -->
-            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn_back" material="left_serv_3_horn_back_material" mass="0.002" />
+            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn_back" material="left_serv_3_horn_back_material" mass="0.001" />
             <!-- Part left_foot_limit_switch_1 -->
-            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material" mass="0.002" />
+            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0966" quat="0.707107 -0.707107 0 -0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material" mass="0.003" />
             <!-- Part left_lower_leg -->
-            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_lower_leg" material="left_lower_leg_material" mass="0.067" />
+            <geom type="mesh" class="visual" pos="0.0207 0.1325 0.0964" quat="0.707107 -0.707107 0 -0" mesh="left_lower_leg" material="left_lower_leg_material" mass="0.045" />
           </body>
         </body>
       </body>
       <body name="right_hip" pos="-0.0425568 0.053613 -0.0353935" quat="1 0 0 0">
         <joint class="sts3215" axis="1 0 0" name="right_hip_lat" type="hinge" range="-0.628 0.23" pos="0.0425568 -0.077613 0.0353935" />
         <!-- Part right_serv_1_horn_back -->
-        <geom type="mesh" class="visual" pos="0.0307568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_serv_1_horn_back" material="right_serv_1_horn_back_material" mass="0.002" />
+        <geom type="mesh" class="visual" pos="0.0307568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_serv_1_horn_back" material="right_serv_1_horn_back_material" mass="0.001" />
         <!-- Part right_hip -->
-        <geom type="mesh" class="visual" pos="0.0309568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_hip" material="right_hip_material" mass="0.022" />
+        <geom type="mesh" class="visual" pos="0.0309568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_hip" material="right_hip_material" mass="0.018" />
         <!-- Part right_serv_2 -->
-        <geom type="mesh" class="visual" pos="0.0311568 -0.054001 0.0480889" quat="1 0 -0 0" mesh="right_serv_2" material="right_serv_2_material" mass="0.055" />
+        <geom type="mesh" class="visual" pos="0.0311568 -0.054001 0.0480889" quat="1 0 -0 0" mesh="right_serv_2" material="right_serv_2_material" mass="0.059" />
         <!-- Part right_serv_1_horn -->
-        <geom type="mesh" class="visual" pos="0.0311568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_serv_1_horn" material="right_serv_1_horn_material" mass="0.004" />
+        <geom type="mesh" class="visual" pos="0.0311568 -0.053613 0.0478935" quat="1 0 -0 0" mesh="right_serv_1_horn" material="right_serv_1_horn_material" mass="0.001" />
         <body name="right_upper_leg" pos="0.0104568 -0.150401 0.0355889" quat="0.700225 -0.700225 0.0984102 0.0984102">
           <joint class="sts3215" axis="0 0 1" name="right_hip" type="hinge" range="-0.66 1.95" />
           <!-- Part right_upper_leg -->
           <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_upper_leg" material="right_upper_leg_material" mass="0.026" />
           <!-- Part right_serv_2_horn_back -->
-          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0966" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn_back" material="right_serv_2_horn_back_material" mass="0.002" />
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0966" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn_back" material="right_serv_2_horn_back_material" mass="0.001" />
           <!-- Part right_serv_2_horn -->
-          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn" material="right_serv_2_horn_material" mass="0.004" />
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn" material="right_serv_2_horn_material" mass="0.001" />
           <!-- Part right_serv_3 -->
-          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.096018" quat="0.707107 0.707107 -0 0" mesh="right_serv_3" material="right_serv_3_material" mass="0.055" />
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.096018" quat="0.707107 0.707107 -0 0" mesh="right_serv_3" material="right_serv_3_material" mass="0.059" />
           <body name="right_lower_leg" pos="-0 0.12 -0.000382036" quat="0.970296 -0 0 -0.241922">
             <joint class="sts3215" axis="0 0 1" name="right_knee" type="hinge" range="-1.51 2.36" />
             <!-- Part right_foot_side -->
-            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 0 0" mesh="right_foot_side" material="right_foot_side_material" mass="0.013" />
+            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 0 0" mesh="right_foot_side" material="right_foot_side_material" mass="0.011" />
             <!-- Part right_serv_3_horn -->
-            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_serv_3_horn" material="right_serv_3_horn_material" mass="0.004" />
+            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_serv_3_horn" material="right_serv_3_horn_material" mass="0.001" />
             <!-- Part right_foot_base -->
             <geom type="mesh" class="visual" pos="0.0215316 -0.136413 0.0964" quat="0.707107 0.707107 -0 0" mesh="right_foot_base" material="right_foot_base_material" mass="0.011" />
             <geom name="right_foot_base" type="box" class="foot" size="0.040744 0.017113 0.0065098" pos="0.02336 0.15895 0.014788" quat="0.703233 0.703233 0.0739128 0.0739128" />
             <site name="r_foot" pos="0.01781 0.16443 0.0111" group="5" />
             <!-- Part left_foot_limit_switch_1_2 -->
-            <geom type="mesh" class="visual" pos="0.0207 -0.1325 -0.0744" quat="0.707107 0.707107 -0 0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material" mass="0.002" />
+            <geom type="mesh" class="visual" pos="0.0207 -0.1325 -0.0744" quat="0.707107 0.707107 -0 0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material" mass="0.003" />
             <!-- Part right_serv_3_horn_back -->
-            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0966" quat="0.707107 0.707107 0 0" mesh="right_serv_3_horn_back" material="right_serv_3_horn_back_material" mass="0.002" />
+            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0966" quat="0.707107 0.707107 0 0" mesh="right_serv_3_horn_back" material="right_serv_3_horn_back_material" mass="0.001" />
             <!-- Part right_lower_leg -->
-            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 0 0" mesh="right_lower_leg" material="right_lower_leg_material" mass="0.067" />
+            <geom type="mesh" class="visual" pos="0.0207 -0.1325 0.0964" quat="0.707107 0.707107 0 0" mesh="right_lower_leg" material="right_lower_leg_material" mass="0.045" />
           </body>
         </body>
       </body>
