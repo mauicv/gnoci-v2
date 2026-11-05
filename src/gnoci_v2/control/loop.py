@@ -1,5 +1,6 @@
 import threading
 import time
+import traceback
 
 class Loop:
     def __init__(self, hz, func, limit=None):
@@ -9,6 +10,7 @@ class Loop:
         self._thread = None
         self.limit = limit
         self.count = 0
+        self.failed = False
 
     def start(self):
         self._running = True
@@ -28,12 +30,16 @@ class Loop:
                 sleep_time = next_tick - time.perf_counter()
                 if sleep_time > 0:
                     time.sleep(sleep_time)
-        except Exception as e:
-            print(f"Error in loop: {e}")
+                else:
+                    # Behind schedule: resync rather than run missed ticks back to back.
+                    next_tick = time.perf_counter()
+        except Exception:
+            # Can't join this thread from inside itself, so just mark it stopped.
+            traceback.print_exc()
+            self.failed = True
             self._running = False
-            self.stop()
 
     def stop(self):
         self._running = False
-        if self._thread:
+        if self._thread and self._thread is not threading.current_thread():
             self._thread.join()
