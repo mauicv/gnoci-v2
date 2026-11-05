@@ -459,6 +459,7 @@ control = [
     { name = "evdev" },
     { name = "gpiod" },
     { name = "numpy" },
+    { name = "onnxruntime" },
     { name = "rustypot" },
     { name = "smbus2" },
 ]
@@ -480,6 +481,7 @@ control = [
     { name = "evdev", specifier = ">=2.0.0" },
     { name = "gpiod", specifier = ">=2.5.0" },
     { name = "numpy", specifier = ">=2.5.4" },
+    { name = "onnxruntime", specifier = ">=1.20" },
     { name = "rustypot", specifier = ">=1.13.1" },
     { name = "smbus2", specifier = ">=0.5" },
 ]
