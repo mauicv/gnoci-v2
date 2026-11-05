@@ -18,7 +18,7 @@ from gpiod.line import Direction, Bias
 6: -1.32 lower right legt rowarad, 2.19 lower right leg back, +ve is back
 """
 
-class ServoController:
+class ServoHWI:
     SERVO_IDS = [1, 3, 5, 2, 4, 6]
     SERVO_NAMES = [
         'left_hip_lat',

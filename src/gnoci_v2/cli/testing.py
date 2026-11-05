@@ -1,5 +1,7 @@
 import click
-from gnoci_v2.control.hardware import ServoController
+from gnoci_v2.control.servo_hwi import ServoHWI
+from gnoci_v2.control.contact_hwi import ContactHWI
+from gnoci_v2.control.imu_hwi import IMUHWI
 import numpy as np
 import time
 
@@ -15,7 +17,7 @@ import time
 )
 def test_servos(servo_name, amplitude):
     print("Testing servo...")
-    servo_controller = ServoController()
+    servo_controller = ServoHWI()
     servo_id = servo_controller.get_id_from_name(servo_name)
 
     upper_limit = min(amplitude, servo_controller.UPPER_LIMITS[servo_id])
@@ -45,3 +47,23 @@ def test_servos(servo_name, amplitude):
         servo_controller.disable()
 
     print("Test complete")
+
+
+@click.command()
+def test_contacts():
+    print("Testing contacts...")
+    contact_hwi = ContactHWI()
+    while True:
+        left, right = contact_hwi.get_contacts()
+        print(f"Left: {left}, Right: {right}")
+        time.sleep(0.01)
+
+
+@click.command()
+def test_imu():
+    print("Testing IMU...")
+    imu_hwi = IMUHWI()
+    while True:
+        gyro, gravity = imu_hwi.read()
+        print(f"Gyro (rad/s): {np.round(gyro, 3)}, Gravity: {np.round(gravity, 3)}")
+        time.sleep(imu_hwi.filter.dt)

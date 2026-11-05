@@ -28,6 +28,7 @@ control = [
     "gpiod>=2.5.0",
     "numpy>=2.5.4",
     "rustypot>=1.13.1",
+    "smbus2>=0.5",
 ]
 
 [tool.uv]
