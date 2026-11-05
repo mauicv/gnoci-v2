@@ -1,4 +1,4 @@
-"""Runs training and evaluation loop for Open Duck Mini V2."""
+"""Runs training and evaluation loop for GnociV2."""
 
 import argparse
 import os
@@ -39,7 +39,7 @@ class GnociV2Runner(BaseRunner):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Open Duck Mini Runner Script")
+    parser = argparse.ArgumentParser(description="GnociV2 Runner Script")
     parser.add_argument(
         "--output_dir",
         type=str,

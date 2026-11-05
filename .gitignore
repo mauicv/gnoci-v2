@@ -17,3 +17,5 @@ videos/
 # Training logs
 logs/
 .tmp/
+
+checkpoints/

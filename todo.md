@@ -2,7 +2,7 @@
 
 ## Model
 - [x] Add part masses and inertias (guessed)
-- [ ] Measure part masses and update the visual geom `mass` values
+- [x] Measure part masses and update the visual geom `mass` values
 - [x] Add joint limits
 - [x] Add sensor block (IMU, foot pos/linvel, foot-floor contact)
 - [x] Set IMU site orientation to match the real chip
@@ -19,7 +19,8 @@
 - [x] Add a training script
 
 ## Control
-- [ ] Add on-robot control code and `control` group dependencies
+- [ ] Figure out what the policy takes ans input
+- [ ] Add code to save policy as 
 
 ## Misc
 - [ ] Write the README

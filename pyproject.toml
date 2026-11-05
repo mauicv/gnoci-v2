@@ -20,10 +20,17 @@ dev = [
 sim = [
     "imageio-ffmpeg>=0.6.0",
     # brax<=0.14.2 PPO calls jax.device_put_replicated, removed in jax 0.10.
+    "jax2onnx>=0.17.1",
     "jax[cuda]<0.10",
     "playground>=0.2.0",
 ]
-control = []
+control = [
+    "evdev>=2.0.0",
+    "gpiod>=2.5.0",
+    "numpy>=2.5.4",
+    "rustypot>=1.13.1",
+]
 
 [tool.uv]
-default-groups = ["dev", "sim"]
+default-groups = ["dev"]
+conflicts = [[{ group = "sim" }, { group = "control" }]]
