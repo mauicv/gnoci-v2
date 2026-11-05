@@ -1,7 +1,9 @@
 import click
+from evdev import ecodes
 from gnoci_v2.control.servo_hwi import ServoHWI
 from gnoci_v2.control.contact_hwi import ContactHWI
 from gnoci_v2.control.imu_hwi import IMUHWI
+from gnoci_v2.control.joystick_hwi import JoystickHWI
 import numpy as np
 import time
 
@@ -67,3 +69,14 @@ def test_imu():
         gyro, gravity = imu_hwi.read()
         print(f"Gyro (rad/s): {np.round(gyro, 3)}, Gravity: {np.round(gravity, 3)}")
         time.sleep(imu_hwi.filter.dt)
+
+
+@click.command()
+def test_joystick():
+    print("Testing joystick...")
+    joystick_hwi = JoystickHWI()
+    axes = [ecodes.ABS[axis] for axis, _ in joystick_hwi.axes]
+    print(f"Device: {joystick_hwi.dev.name}, axes for vx, vy, yaw_rate: {axes}")
+    while True:
+        print(f"Command [vx, vy, yaw_rate]: {np.round(joystick_hwi.read(), 3)}")
+        time.sleep(0.02)

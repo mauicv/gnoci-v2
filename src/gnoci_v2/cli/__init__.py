@@ -14,11 +14,13 @@ try:
     from gnoci_v2.cli.testing import (
         test_contacts,
         test_imu,
+        test_joystick,
         test_servos,
     )
     cli.add_command(measure_imu_offsets)
     cli.add_command(test_contacts)
     cli.add_command(test_imu)
+    cli.add_command(test_joystick)
     cli.add_command(test_servos)
 except ImportError as error:
     logger.error(error)
