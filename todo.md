@@ -19,8 +19,24 @@
 - [x] Add a training script
 
 ## Control
-- [ ] Figure out what the policy takes ans input
-- [ ] Add code to save policy as 
+
+### Servos
+- [x] Figure out what the policy takes as input
+- [x] Add code to save policy as onnx
+- [ ] Double check servo controller input units
+- [ ] Double check servo controller output units
+- [ ] Verify servo angle wrap behaviour
+- [ ] Verify servo rotational oreintations
+- [ ] Return joint posistions/velocities
+
+### Contact
+- [ ] contact sensor logic ...
+- [ ] ...
+
+### IMU
+- [ ] IMU logic ...
+- [ ] G vector (complementary filter)
+- [ ] gyro vector
 
 ## Misc
 - [ ] Write the README
