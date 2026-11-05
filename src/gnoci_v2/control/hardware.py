@@ -61,16 +61,34 @@ class ServoController:
         return self.SERVO_NAMES.index(name)
 
     def init_servos(self):
+        """Turns torque on without the servos jumping, then moves slowly to home."""
         self.controller.sync_write_p_coefficient(self.SERVO_IDS, self.low_torque_kps)
-        self.set_positions([0.0 for _ in range(len(self.SERVO_IDS))])
-        time.sleep(2)
+        # Hold the current pose, so torque doesn't drive to an old goal position.
+        present = self.controller.sync_read_present_position(self.SERVO_IDS)
+        self.controller.sync_write_goal_position(self.SERVO_IDS, present)
+        self.enable()
         self.controller.sync_write_p_coefficient(self.SERVO_IDS, self.kps)
-    
+        self.move_to(np.zeros(len(self.SERVO_IDS)))
+
     def enable(self):
-        self.controller.set_torque_enable(self.SERVO_IDS, True)
+        self.controller.sync_write_torque_enable(
+            self.SERVO_IDS, [True for _ in self.SERVO_IDS]
+        )
 
     def disable(self):
-        self.controller.set_torque_enable(self.SERVO_IDS, False)
+        self.controller.sync_write_torque_enable(
+            self.SERVO_IDS, [False for _ in self.SERVO_IDS]
+        )
+
+    def move_to(self, targets, speed=0.5, dt=0.02):
+        """Moves in a straight line from the current pose at up to speed rad/s."""
+        start = np.array(self.get_positions())
+        targets = np.array(targets, dtype=float)
+        distance = np.max(np.abs(targets - start))
+        steps = max(1, int(np.ceil(distance / (speed * dt))))
+        for step in range(1, steps + 1):
+            self.set_positions(start + (targets - start) * step / steps)
+            time.sleep(dt)
 
     def set_positions(self, positions):
         """Moves the servos to joint angles given in sim order and sim convention."""
