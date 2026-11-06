@@ -29,6 +29,7 @@ class Main:
             self,
             model_name=DEFAULT_MODEL,
             close_loop=False,
+            torque_off=False,
             verbose=False
         ):
         # Load the policy first: a wrong model name fails before any hardware opens.
@@ -43,8 +44,8 @@ class Main:
         self.dt = 1 / self.control_freq
         self.reset_phase()
         self.close_loop = close_loop
+        self.torque_off = torque_off
         self.verbose = verbose
-
         # (gyro, gravity, perf_counter time of the reading), or None before the first.
         self.imu_data = None
         self.imu_hwi = IMUHWI(dt=0.01)
@@ -66,6 +67,8 @@ class Main:
         self.servo_hwi.init_servos()  # Blocks until the servos reach home.
         self.get_imu()  # Fails here, before walking, if the IMU isn't running.
         self.reset_phase()
+        if self.torque_off:
+            self.servo_hwi.disable()
         self.ready = True
 
     def get_imu(self):
@@ -112,7 +115,7 @@ class Main:
             phase_obs
         ))
 
-    def start(self):
+    def start(self, channel=None):
         if not self.ready:
             raise RuntimeError("Main process not ready")
         # Deadlines are fixed in advance (t0 + k*dt), so sleep overshoot on one
@@ -147,6 +150,10 @@ class Main:
                 # Resync: hold this late action for a full step, rather than
                 # replacing it straight away to catch up.
                 next_time = now + self.dt
+
+            if channel is not None:
+                channel.publish(observation.tolist())
+
             time.sleep(next_time - now)
 
     def stop(self):

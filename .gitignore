@@ -19,3 +19,4 @@ logs/
 .tmp/
 
 checkpoints/
+code_ref

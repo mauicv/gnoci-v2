@@ -23,20 +23,20 @@
 ### Servos
 - [x] Figure out what the policy takes as input
 - [x] Add code to save policy as onnx
-- [ ] Double check servo controller input units
-- [ ] Double check servo controller output units
-- [ ] Verify servo angle wrap behaviour
-- [ ] Verify servo rotational oreintations
-- [ ] Return joint posistions/velocities
-
-### Contact
-- [ ] contact sensor logic ...
-- [ ] ...
+- [x] Double check servo controller input units
+- [x] Double check servo controller output units
+- [x] Verify servo angle wrap behaviour
+- [x] Verify servo rotational oreintations
+- [x] Return joint posistions/velocities
 
 ### IMU
-- [ ] IMU logic ...
-- [ ] G vector (complementary filter)
-- [ ] gyro vector
+- [x] IMU logic ...
+- [x] G vector (complementary filter)
+- [x] gyro vector
+
+### Next
+- [ ] Set kds to 0 in servo controller.
+- [ ] Find some way of comparing robot to sim...
 
 ## Misc
 - [ ] Write the README

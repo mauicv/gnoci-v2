@@ -4,6 +4,7 @@ from gnoci_v2.control.servo_hwi import ServoHWI
 from gnoci_v2.control.contact_hwi import ContactHWI
 from gnoci_v2.control.imu_hwi import IMUHWI
 from gnoci_v2.control.joystick_hwi import JoystickHWI
+from gnoci_v2.networking.client import Client
 import numpy as np
 import time
 
@@ -80,3 +81,23 @@ def test_joystick():
     while True:
         print(f"Command [vx, vy, yaw_rate]: {np.round(joystick_hwi.read(), 3)}")
         time.sleep(0.02)
+
+
+@click.command()
+@click.option("--host", type=str, default="localhost", show_default=True, help="The host to connect to")
+@click.option("--port", type=int, default=5000, show_default=True, help="The port to connect to")
+def test_client(host, port):
+    print("Testing client...")
+    client = Client(host, port)
+    client.connect()
+    try:
+        # receive() blocks until the next message, so no sleep: one would make
+        # this read slower than the stream and fall further and further behind.
+        while True:
+            data = client.receive()
+            if data is None:
+                print("Stream closed")
+                break
+            print(f"Data: {np.round(data, 3)}")
+    finally:
+        client.close()
