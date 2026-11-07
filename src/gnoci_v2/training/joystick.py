@@ -80,8 +80,8 @@ def default_config() -> config_dict.ConfigDict:
       # observation it was computed from; the gyro and gravity in the
       # observation are imu_delay substeps old. [0, 0] is no delay.
       latency_config=config_dict.create(
-          action_delay_range=[0, 0],
-          imu_delay_range=[0, 0],
+          action_delay_range=[0, 15],
+          imu_delay_range=[0, 5],
       ),
       lin_vel_x=[-0.3, 0.3],
       lin_vel_y=[-0.2, 0.2],
