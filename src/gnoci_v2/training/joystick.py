@@ -378,7 +378,11 @@ class GnociV2Joystick(GnociV2Env):
     p_fz = p_f[..., -1]
     state.info["swing_peak"] = jp.maximum(state.info["swing_peak"], p_fz)
 
-    obs = self._get_obs(data, state.info, contact)
+    # The obs carries the action just applied, as the robot's Main does: the
+    # policy computing the next action sees the one before it. (info["last_act"]
+    # still holds the action before that until the end of step(), for the
+    # action_rate reward.)
+    obs = self._get_obs(data, state.info, contact, last_act=action)
     done = self._get_termination(data)
 
     rewards = self._get_reward(
@@ -428,8 +432,15 @@ class GnociV2Joystick(GnociV2Env):
     )
 
   def _get_obs(
-      self, data: mjx.Data, info: dict[str, Any], contact: jax.Array
+      self,
+      data: mjx.Data,
+      info: dict[str, Any],
+      contact: jax.Array,
+      last_act: Optional[jax.Array] = None,
   ) -> mjx_env.Observation:
+    """last_act: the action the obs reports as the last one. Default info["last_act"]."""
+    if last_act is None:
+      last_act = info["last_act"]
     if self._max_imu_delay > 0:
       imu = info["imu_history"][info["imu_delay"]]
       gyro, gravity = imu[:3], imu[3:]
@@ -489,7 +500,7 @@ class GnociV2Joystick(GnociV2Env):
         info["command"],  # 3
         noisy_joint_angles - self._default_pose,  # 6
         noisy_joint_vel,  # 6
-        info["last_act"],  # 6
+        last_act,  # 6
         phase,
     ])
 

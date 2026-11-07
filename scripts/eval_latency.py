@@ -1,9 +1,9 @@
 """Measure how a trained policy copes with action and IMU latency in the sim.
 
 Runs the deterministic policy in many envs for each combination of action
-delay, IMU delay and last-action convention, with the same random seed for
-every combination, so differences come from the latency alone. Prints a table
-and saves the results as JSON.
+delay and IMU delay, with the same random seed for every combination, so
+differences come from the latency alone. Prints a table and saves the results
+as JSON.
 
   uv run python scripts/eval_latency.py
   uv run python scripts/eval_latency.py --action-delays-ms 0 10 20 30 40 --imu-delays-ms 0 10
@@ -14,10 +14,10 @@ delay of D ms means an action takes effect D ms after the observation it was
 computed from; an IMU delay of E ms means the gyro and gravity in the
 observation are E ms old.
 
-Last-action convention: the sim's observation holds the action from two
-control steps back (step() builds the obs before updating last_act), while the
-robot's Main sends the action from one step back. "sim" is what training saw;
-"robot" is what the robot currently does.
+The env's observation reports the action from one control step back, as the
+robot's Main does. Checkpoints trained before that fix saw the action from two
+steps back, so they're evaluated here (and on the robot) slightly out of
+distribution.
 """
 
 import argparse
@@ -34,7 +34,6 @@ from gnoci_v2.training import joystick
 from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy
 
 CHECKPOINTS = Path("checkpoints")
-LAST_ACTION = slice(21, 27)
 COMMAND = slice(6, 9)
 
 
@@ -53,7 +52,7 @@ def ms_to_substeps(ms, sim_dt):
 
 
 def make_rollout(env, policy, num_envs, num_steps, fixed_command):
-  """Returns a jitted fn (rng, action_delay, imu_delay, robot_last_action) -> results."""
+  """Returns a jitted fn (rng, action_delay, imu_delay) -> results."""
   reset = jax.vmap(env.reset)
   step = jax.vmap(env.step)
   dt = env.dt
@@ -65,7 +64,7 @@ def make_rollout(env, policy, num_envs, num_steps, fixed_command):
     state.info["command"] = command
     return state
 
-  def rollout(rng, action_delay, imu_delay, robot_last_action):
+  def rollout(rng, action_delay, imu_delay):
     state = reset(jax.random.split(rng, num_envs))
     state.info["action_delay"] = jp.full(num_envs, action_delay, jp.int32)
     state.info["imu_delay"] = jp.full(num_envs, imu_delay, jp.int32)
@@ -77,10 +76,7 @@ def make_rollout(env, policy, num_envs, num_steps, fixed_command):
 
     def body(carry, _):
       state, prev_action, alive, sums = carry
-      obs = state.obs["state"]
-      # The robot sends the action it just sent; the sim sends the one before.
-      obs = jp.where(robot_last_action, obs.at[:, LAST_ACTION].set(prev_action), obs)
-      action = policy(obs)
+      action = policy(state.obs["state"])
 
       command = state.info["command"]
       linvel = jax.vmap(env.get_local_linvel)(state.data)[:, :2]
@@ -152,7 +148,6 @@ def main() -> None:
                       help="Checkpoint directory. Default: the latest in checkpoints/.")
   parser.add_argument("--action-delays-ms", type=float, nargs="+", default=[0, 10, 20, 30, 40])
   parser.add_argument("--imu-delays-ms", type=float, nargs="+", default=[0])
-  parser.add_argument("--last-action", choices=["sim", "robot", "both"], default="both")
   parser.add_argument("--num-envs", type=int, default=256)
   parser.add_argument("--steps", type=int, default=1000, help="Control steps per env (50 per second).")
   parser.add_argument("--command", type=float, nargs=3, default=None, metavar=("VX", "VY", "YAW"),
@@ -178,7 +173,6 @@ def main() -> None:
     config.push_config.enable = False
   env = joystick.GnociV2Joystick(config=config)
 
-  last_actions = ["sim", "robot"] if args.last_action == "both" else [args.last_action]
   rollout = make_rollout(env, policy, args.num_envs, args.steps, args.command)
   rng = jax.random.PRNGKey(args.seed)
 
@@ -186,7 +180,7 @@ def main() -> None:
   print(f"{args.num_envs} envs x {args.steps} steps ({args.steps * env.dt:.0f} s),"
         f" command {'random' if args.command is None else args.command},"
         f" pushes {'off' if args.no_push else 'on'}")
-  header = (f"{'action ms':>9} {'imu ms':>6} {'last act':>8} | {'fall %':>6} {'survive s':>9}"
+  header = (f"{'action ms':>9} {'imu ms':>6} | {'fall %':>6} {'survive s':>9}"
             f" {'vel err':>7} {'yaw err':>7} | {'|a|':>5} {'|da|':>5} {'qvel rms':>8}")
   print(header)
   print("-" * len(header))
@@ -194,23 +188,22 @@ def main() -> None:
   if args.video_dir:
     args.video_dir.mkdir(parents=True, exist_ok=True)
   rows = []
-  for d, e, last in itertools.product(action_delays, imu_delays, last_actions):
-    results, qpos0, alive0 = rollout(rng, d, e, last == "robot")
+  for d, e in itertools.product(action_delays, imu_delays):
+    results, qpos0, alive0 = rollout(rng, d, e)
     results = {k: float(v) for k, v in results.items()}
     row = {
         "action_delay_ms": d * sim_dt * 1000,
         "imu_delay_ms": e * sim_dt * 1000,
-        "last_action": last,
         **results,
     }
     rows.append(row)
-    print(f"{row['action_delay_ms']:>9g} {row['imu_delay_ms']:>6g} {last:>8} |"
+    print(f"{row['action_delay_ms']:>9g} {row['imu_delay_ms']:>6g} |"
           f" {100 * results['fall_rate']:>6.1f} {results['mean_survival_s']:>9.1f}"
           f" {results['lin_vel_err']:>7.3f} {results['yaw_rate_err']:>7.3f} |"
           f" {results['action_abs']:>5.2f} {results['action_rate']:>5.2f}"
           f" {results['joint_vel_rms']:>8.2f}")
     if args.video_dir:
-      path = args.video_dir / f"action{row['action_delay_ms']:g}ms_imu{row['imu_delay_ms']:g}ms_{last}.mp4"
+      path = args.video_dir / f"action{row['action_delay_ms']:g}ms_imu{row['imu_delay_ms']:g}ms.mp4"
       save_video(env, np.asarray(qpos0), np.asarray(alive0), path)
 
   out = args.out or Path("logs/latency") / f"{checkpoint.name}_{datetime.now():%Y%m%d_%H%M%S}.json"
