@@ -21,7 +21,7 @@ sim = [
     # brax<=0.14.2 PPO calls jax.device_put_replicated, removed in jax 0.10.
     "jax2onnx>=0.17.1",
     "jax[cuda]<0.10",
-    "playground>=0.2.0",
+    "playground==0.2.0",
 ]
 control = [
     "evdev>=2.0.0",
