@@ -75,6 +75,14 @@ def default_config() -> config_dict.ConfigDict:
           interval_range=[5.0, 10.0],
           magnitude_range=[0.05, 0.5],  # m/s velocity kick.
       ),
+      # Latency, in physics substeps (sim_dt each), sampled per episode from
+      # [low, high]. An action takes effect action_delay substeps after the
+      # observation it was computed from; the gyro and gravity in the
+      # observation are imu_delay substeps old. [0, 0] is no delay.
+      latency_config=config_dict.create(
+          action_delay_range=[0, 0],
+          imu_delay_range=[0, 0],
+      ),
       lin_vel_x=[-0.3, 0.3],
       lin_vel_y=[-0.2, 0.2],
       ang_vel_yaw=[-1.0, 1.0],
@@ -175,6 +183,56 @@ class GnociV2Joystick(GnociV2Env):
         for geom in consts.FEET_GEOMS
     ]
 
+    # Latency buffers, sized by the largest delay. With both ranges at [0, 0]
+    # they're skipped and step() is unchanged.
+    latency = self._config.latency_config
+    self._max_action_delay = int(latency.action_delay_range[1])
+    self._max_imu_delay = int(latency.imu_delay_range[1])
+    # Control steps of past targets needed to cover the largest action delay.
+    self._target_history_len = -(-self._max_action_delay // self.n_substeps) + 1
+
+  def _imu_reading(self, data: mjx.Data) -> jax.Array:
+    """The noiseless [gyro, gravity] the observation uses."""
+    gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
+    return jp.concatenate([self.get_gyro(data), gravity])
+
+  def _physics_step(self, data, info, motor_targets):
+    """Runs one control step of physics, applying the action and IMU delays.
+
+    info["target_history"][k] is the motor target from k control steps ago.
+    Substep j of this control step uses the target from
+    ceil((action_delay - j) / n_substeps) steps ago, so a new target takes
+    effect action_delay substeps after the observation it came from.
+    info["imu_history"][k] is the IMU reading from k substeps ago.
+    """
+    if self._max_action_delay == 0 and self._max_imu_delay == 0:
+      data = mjx_env.step(self.mjx_model, data, motor_targets, self.n_substeps)
+      return data, info
+
+    history = jp.concatenate(
+        [motor_targets[None], info["target_history"][:-1]]
+    )
+    j = jp.arange(self.n_substeps)
+    lags = -((j - info["action_delay"]) // self.n_substeps)  # ceil((D - j) / n)
+    lags = jp.clip(lags, 0, self._target_history_len - 1)
+    targets = history[lags]
+
+    def substep(carry, target):
+      data, imu_history = carry
+      data = mjx.step(self.mjx_model, data.replace(ctrl=target))
+      if self._max_imu_delay > 0:
+        imu_history = jp.concatenate(
+            [self._imu_reading(data)[None], imu_history[:-1]]
+        )
+      return (data, imu_history), None
+
+    (data, imu_history), _ = jax.lax.scan(
+        substep, (data, info["imu_history"]), targets
+    )
+    info["target_history"] = history
+    info["imu_history"] = imu_history
+    return data, info
+
   def reset(self, rng: jax.Array) -> mjx_env.State:
     qpos = self._init_q
     qvel = jp.zeros(self.mjx_model.nv)
@@ -253,6 +311,22 @@ class GnociV2Joystick(GnociV2Env):
         "push_interval_steps": push_interval_steps,
     }
 
+    # Latency: delays for this episode, and buffers filled with the start state.
+    latency = self._config.latency_config
+    rng, action_key, imu_key = jax.random.split(rng, 3)
+    info["rng"] = rng
+    info["action_delay"] = jax.random.randint(
+        action_key, (), latency.action_delay_range[0],
+        latency.action_delay_range[1] + 1,
+    )
+    info["imu_delay"] = jax.random.randint(
+        imu_key, (), latency.imu_delay_range[0], latency.imu_delay_range[1] + 1
+    )
+    info["target_history"] = jp.tile(data.ctrl, (self._target_history_len, 1))
+    info["imu_history"] = jp.tile(
+        self._imu_reading(data), (self._max_imu_delay + 1, 1)
+    )
+
     metrics = {}
     for k in self._config.reward_config.scales.keys():
       metrics[f"reward/{k}"] = jp.zeros(())
@@ -289,9 +363,8 @@ class GnociV2Joystick(GnociV2Env):
     state = state.replace(data=data)  # pyrefly: ignore[missing-attribute]
 
     motor_targets = self._default_pose + action * self._config.action_scale
-    data = mjx_env.step(
-        self.mjx_model, state.data, motor_targets, self.n_substeps
-    )
+    data, info = self._physics_step(state.data, state.info, motor_targets)
+    state = state.replace(info=info)  # pyrefly: ignore[missing-attribute]
     state.info["motor_targets"] = motor_targets
 
     contact = jp.array([
@@ -357,7 +430,12 @@ class GnociV2Joystick(GnociV2Env):
   def _get_obs(
       self, data: mjx.Data, info: dict[str, Any], contact: jax.Array
   ) -> mjx_env.Observation:
-    gyro = self.get_gyro(data)
+    if self._max_imu_delay > 0:
+      imu = info["imu_history"][info["imu_delay"]]
+      gyro, gravity = imu[:3], imu[3:]
+    else:
+      gyro = self.get_gyro(data)
+      gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
     info["rng"], noise_rng = jax.random.split(info["rng"])
     noisy_gyro = (
         gyro
@@ -366,7 +444,6 @@ class GnociV2Joystick(GnociV2Env):
         * self._config.noise_config.scales.gyro
     )
 
-    gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
     info["rng"], noise_rng = jax.random.split(info["rng"])
     noisy_gravity = (
         gravity

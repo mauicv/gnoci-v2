@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Constants for Berkeley Humanoid."""
+"""Constants for Gnoci V2."""
 
 from etils import epath
 import pathlib
