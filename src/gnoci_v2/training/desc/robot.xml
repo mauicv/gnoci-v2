@@ -5,6 +5,13 @@
        Masses are guesses for now (servos from the STS3215 datasheet, printed parts
        ~0.75 g/cm3 x CAD volume) and should be replaced with measured values. -->
   <compiler angle="radian" meshdir="assets" autolimits="true" inertiagrouprange="2 2" />
+  <!-- Solver settings from Open Duck Mini (and MuJoCo Playground's locomotion envs), instead of
+       MuJoCo's defaults of iterations=100, ls_iterations=50. Each step starts from the last
+       step's solution, so one Newton iteration is enough at a 2 ms timestep. eulerdamp off:
+       joint damping is integrated explicitly, which is stable here (damping * dt / inertia ~ 0.04). -->
+  <option iterations="1" ls_iterations="5">
+    <flag eulerdamp="disable"/>
+  </option>
   <default>
     <default class="gnoci_v2">
       <joint frictionloss="0.1" armature="0.005" />
