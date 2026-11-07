@@ -48,7 +48,7 @@ class Main:
         self.verbose = verbose
         # (gyro, gravity, perf_counter time of the reading), or None before the first.
         self.imu_data = None
-        self.imu_hwi = IMUHWI(dt=0.01)
+        self.imu_hwi = IMUHWI(dt=0.00333333)
 
         def read_imu():
             gyro, gravity = self.imu_hwi.read()
@@ -57,7 +57,7 @@ class Main:
 
         self.imu_loop = Loop(
             func=read_imu,
-            hz=100,
+            hz=300,
         )
         self.ready = False
 
