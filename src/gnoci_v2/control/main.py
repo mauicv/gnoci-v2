@@ -14,13 +14,6 @@ IMU_MAX_AGE = 0.05
 # Steps per second of each leg. Training sampled U(1.25, 1.5) per episode, so use the middle.
 GAIT_FREQ = 1.375
 
-# Joint targets are default pose + ACTION_SCALE * action (joystick.py action_scale).
-# The default pose is the home keyframe, which is all zeros.
-# Must match the scale the model was trained with: models trained before the
-# switch to 0.25 (serial-pollen-weep, state-unfold-marry, dimension-rain-cape,
-# spoken-opal-phase) need 0.5.
-ACTION_SCALE = 0.25
-
 # With --verbose, print the action and timing every this many steps (5 times a second).
 PRINT_EVERY = 10
 
@@ -134,7 +127,9 @@ class Main:
             self.last_action = action
 
             if self.close_loop:
-                self.servo_hwi.set_positions(ACTION_SCALE * action)
+                # Targets are the default pose (all zeros) + action_scale * action,
+                # with the scale the model was trained with (its config.json).
+                self.servo_hwi.set_positions(self.policy.action_scale * action)
 
             end_time = time.perf_counter()
             if self.verbose and step % PRINT_EVERY == 0:

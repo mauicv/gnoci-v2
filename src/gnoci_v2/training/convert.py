@@ -2,6 +2,7 @@ from gnoci_v2.training.runner import GnociV2Runner
 import argparse
 from argparse import Namespace
 import functools
+import json
 from pathlib import Path
 from brax.training.acme import running_statistics
 from brax.training.agents.ppo import networks as ppo_networks, train as ppo
@@ -12,6 +13,8 @@ import pytest
 from mujoco_playground.config import locomotion_params
 from orbax import checkpoint as ocp
 from jax2onnx import to_onnx
+
+from gnoci_v2.training.constants import ENV_CONFIG_FILE
 
 
 def load_checkpoint(path):
@@ -44,6 +47,24 @@ def make_deterministic_policy(normalizer, policy):
         return action
 
     return deterministic_policy
+
+
+def checkpoint_action_scale(path):
+    """The action_scale the checkpoint was trained with, or None if it wasn't recorded.
+
+    Checkpoints saved before the env config was recorded don't have it.
+    """
+    config_path = Path(path) / ENV_CONFIG_FILE
+    if not config_path.is_file():
+        return None
+    return float(json.loads(config_path.read_text())["action_scale"])
+
+
+def write_model_config(model_dir, action_scale):
+    """Writes models/<name>/config.json: what the robot needs to run the policy."""
+    path = Path(model_dir) / "config.json"
+    path.write_text(json.dumps({"action_scale": action_scale}, indent=2) + "\n")
+    return path
 
 
 def export_onnx(deterministic_policy, tmpdir):

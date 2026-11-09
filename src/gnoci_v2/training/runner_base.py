@@ -20,7 +20,7 @@ from mujoco_playground.config import locomotion_params
 from orbax import checkpoint as ocp
 import jax
 
-# from playground.common.export_onnx import export_onnx
+from gnoci_v2.training.constants import ENV_CONFIG_FILE
 
 
 class BaseRunner(ABC):
@@ -87,6 +87,9 @@ class BaseRunner(ABC):
         path = f"{self.output_dir}/{d}_{current_step}"
         print(f"Saving checkpoint (step: {current_step}): {path}")
         orbax_checkpointer.save(path, params, force=True, save_args=save_args)
+        # The env config the policy was trained with, so the export can record
+        # what the robot needs (action_scale). Orbax ignores the extra file.
+        Path(path, ENV_CONFIG_FILE).write_text(self.env._config.to_json(indent=2))
         if self.video_steps > 0:
             self.render_rollout(make_policy, params, f"{path}.mp4")
         # onnx_export_path = f"{self.output_dir}/{d}_{current_step}.onnx"

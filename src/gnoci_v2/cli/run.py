@@ -69,7 +69,10 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream):
         torque_off=torque_off,
         verbose=verbose
     )
-    print(f"Loaded policy {main.policy.name} from {main.policy.path}")
+    print(
+        f"Loaded policy {main.policy.name} from {main.policy.path}"
+        f" (action_scale {main.policy.action_scale})"
+    )
 
     channel = None
     if stream:

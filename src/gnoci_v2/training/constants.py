@@ -20,6 +20,9 @@ from mujoco_playground._src import mjx_env
 
 SIM_PATH = pathlib.Path(__file__).parent
 
+# Saved inside each checkpoint dir: the env config the policy was trained with.
+ENV_CONFIG_FILE = "env_config.json"
+
 FEET_SITES = [
     "l_foot",
     "r_foot",

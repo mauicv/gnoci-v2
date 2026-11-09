@@ -1,9 +1,12 @@
+import json
 from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
 
-# The repo's models/ folder. Each model is models/<experiment name>/policy.onnx.
+# The repo's models/ folder. Each model is models/<experiment name>/, holding
+# policy.onnx and config.json (written by scripts/convert_policy_jax2onnx.py),
+# with the action_scale the policy was trained with.
 MODELS_DIR = Path(__file__).resolve().parents[3] / "models"
 DEFAULT_MODEL = "serial-pollen-weep"
 
@@ -22,10 +25,23 @@ def model_path(name, models_dir=MODELS_DIR):
     return path
 
 
+def load_model_config(name, models_dir=MODELS_DIR):
+    """The model's config.json, as a dict. Raises if it's missing."""
+    path = Path(models_dir) / name / "config.json"
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Model {name!r} has no config.json ({path}), so its action_scale is unknown."
+            " Re-export it with scripts/convert_policy_jax2onnx.py."
+        )
+    return json.loads(path.read_text())
+
+
 class PolicyRunner:
     def __init__(self, name=DEFAULT_MODEL, models_dir=MODELS_DIR):
         self.name = name
         self.path = model_path(name, models_dir)
+        # Joint targets are default pose + action_scale * action, as in training.
+        self.action_scale = float(load_model_config(name, models_dir)["action_scale"])
         self.load_model(self.path)
         # Run once, so the first real step isn't slowed by onnxruntime's setup.
         self.predict(np.zeros(self.obs_dim))
