@@ -1,5 +1,6 @@
 import click
-from gnoci_v2.control.main import Main
+from gnoci_v2.control.main import GAIT_FREQ, Main
+from gnoci_v2.control.record import Recorder
 from gnoci_v2.control.predict import DEFAULT_MODEL
 from gnoci_v2.networking.channel import Channel
 
@@ -58,7 +59,15 @@ from gnoci_v2.networking.channel import Channel
     help="Stream each step's observation to a connected client.",
     is_flag=True,
 )
-def run(model_name, close_loop, torque_off, verbose, host, port, stream):
+@click.option(
+    "--record",
+    "record",
+    default=None,
+    type=click.Path(dir_okay=False),
+    help="Save every step's observation, action and target to this .npz when"
+    " stopped (Ctrl-C). Compare with the sim using scripts/hang_rollout_sim.py --real.",
+)
+def run(model_name, close_loop, torque_off, verbose, host, port, stream, record):
     if close_loop and torque_off:
         raise click.UsageError("--close-loop and --torque-off can't be used together.")
 
@@ -79,12 +88,29 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream):
         channel = Channel(host, port)
         channel.start()
 
+    recorder = None
+    if record is not None:
+        recorder = Recorder(
+            record,
+            model=main.policy.name,
+            action_scale=main.policy.action_scale,
+            control_freq=main.control_freq,
+            gait_freq=GAIT_FREQ,
+            close_loop=close_loop,
+        )
+
     # Torque goes off however this ends, including an error or Ctrl-C.
     try:
         main.init_main_process()
-        main.start(channel)
+        main.start(channel, recorder)
     finally:
         main.stop()
         if channel is not None:
             channel.stop()
+        if recorder is not None:
+            path = recorder.save()
+            if path is None:
+                print("Nothing recorded")
+            else:
+                print(f"Recorded {len(recorder.t)} steps to {path}")
         print("Stopped")

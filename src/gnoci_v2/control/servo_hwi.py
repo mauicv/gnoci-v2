@@ -90,13 +90,17 @@ class ServoHWI:
             self.set_positions(start + (targets - start) * step / steps)
             time.sleep(dt)
 
-    def set_positions(self, positions):
-        """Moves the servos to joint angles given in sim order and sim convention."""
-        clamped = np.clip(
+    def clamp(self, positions):
+        """The joint angles set_positions actually sends: kept inside the hard stops."""
+        return np.clip(
             positions,
             self.LOWER_LIMITS + self.LIMIT_MARGIN,
             self.UPPER_LIMITS - self.LIMIT_MARGIN,
         )
+
+    def set_positions(self, positions):
+        """Moves the servos to joint angles given in sim order and sim convention."""
+        clamped = self.clamp(positions)
         update_pos = self.SIGNS * clamped + self.INITIAL_POSITIONS
         self.controller.sync_write_goal_position(self.SERVO_IDS, update_pos.tolist())
 

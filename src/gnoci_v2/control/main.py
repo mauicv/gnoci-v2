@@ -111,7 +111,11 @@ class Main:
             phase_obs
         ))
 
-    def start(self, channel=None):
+    def start(self, channel=None, recorder=None):
+        """Runs the control loop until interrupted.
+
+        recorder: a Recorder that gets every step's observation, action and target.
+        """
         if not self.ready:
             raise RuntimeError("Main process not ready")
         # Deadlines are fixed in advance (t0 + k*dt), so sleep overshoot on one
@@ -126,10 +130,13 @@ class Main:
             # The sim feeds back the raw action, before scaling.
             self.last_action = action
 
+            # Targets are the default pose (all zeros) + action_scale * action,
+            # with the scale the model was trained with (its config.json).
+            target = self.servo_hwi.clamp(self.policy.action_scale * action)
             if self.close_loop:
-                # Targets are the default pose (all zeros) + action_scale * action,
-                # with the scale the model was trained with (its config.json).
-                self.servo_hwi.set_positions(self.policy.action_scale * action)
+                self.servo_hwi.set_positions(target)
+            if recorder is not None:
+                recorder.add(start_time, observation, action, target)
 
             end_time = time.perf_counter()
             if self.verbose and step % PRINT_EVERY == 0:
