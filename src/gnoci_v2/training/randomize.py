@@ -56,9 +56,11 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
         )
         dof_armature = model.dof_armature.at[dof_addr].set(armature)
 
-        # Jitter torso center of mass position: +U(-0.015, 0.015).
+        # Jitter torso center of mass position: +U(-0.03, 0.03) (Open Duck Mini uses 0.05).
+        # The centre of mass hasn't been measured, only the part masses. The torso is
+        # ~55% of the mass, so this moves the whole robot's COM by up to ~16 mm.
         rng, key = jax.random.split(rng)
-        dpos = jax.random.uniform(key, (3,), minval=-0.015, maxval=0.015)
+        dpos = jax.random.uniform(key, (3,), minval=-0.03, maxval=0.03)
         body_ipos = model.body_ipos.at[TORSO_BODY_ID].set(
             model.body_ipos[TORSO_BODY_ID] + dpos
         )
