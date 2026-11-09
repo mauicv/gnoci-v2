@@ -5,6 +5,12 @@ is held there for --pre seconds, then its target steps to --step. Only that
 servo is read during the test (one servo is faster to read than all six), and
 every sample is timestamped by the middle of its read.
 
+Each sample reads the position, then the servo's own velocity (Present Speed)
+through the same rustypot conversion ServoHWI.get_velocities uses, so the sim
+script can check it against the differentiated position (units) and against
+the sim's joint velocity. Each read has its own timestamp. --no-velocity reads
+the position only, which halves the sample interval.
+
   uv run --group control python scripts/measure_servo_response_real.py --joint left_hip_lat --step 0.3
 
 Then copy the .npz to the laptop and compare with the sim:
@@ -30,6 +36,7 @@ def main() -> None:
   parser.add_argument("--step", type=float, default=0.3, help="Target after the step, rad (sim convention).")
   parser.add_argument("--pre", type=float, default=0.3, help="Seconds recorded at rest before the step.")
   parser.add_argument("--duration", type=float, default=0.5, help="Seconds recorded after the step.")
+  parser.add_argument("--no-velocity", action="store_true", help="Don't read the servo's velocity.")
   parser.add_argument("--out", type=Path, default=None)
   args = parser.parse_args()
 
@@ -46,32 +53,36 @@ def main() -> None:
   targets[index] = args.step
   controller = servo_hwi.controller
 
+  times, positions = [], []
+  velocity_times, velocities = [], []
+
   def read():
-    """(time of the sample, joint angle in sim convention)."""
+    """Records the joint angle (and velocity) in sim convention, with read times."""
     t0 = time.perf_counter()
     raw = controller.read_present_position(servo_id)[0]
     t1 = time.perf_counter()
-    return (t0 + t1) / 2, sign * raw
+    times.append((t0 + t1) / 2)
+    positions.append(sign * raw)
+    if not args.no_velocity:
+      raw = controller.read_present_velocity(servo_id)[0]
+      t2 = time.perf_counter()
+      velocity_times.append((t1 + t2) / 2)
+      velocities.append(sign * raw)
 
-  times, positions = [], []
   try:
     servo_hwi.init_servos()  # Torque on, then a slow move home.
     time.sleep(0.5)  # Let it settle.
 
     end = time.perf_counter() + args.pre
     while time.perf_counter() < end:
-      t, p = read()
-      times.append(t)
-      positions.append(p)
+      read()
 
     servo_hwi.set_positions(targets)
     t_command = time.perf_counter()  # A write gets no reply: the packet has gone.
 
     end = t_command + args.duration
     while time.perf_counter() < end:
-      t, p = read()
-      times.append(t)
-      positions.append(p)
+      read()
 
     servo_hwi.move_to(np.zeros(len(ServoHWI.SERVO_IDS)))
   finally:
@@ -85,9 +96,16 @@ def main() -> None:
   print(f"Start {positions[t < 0].mean():+.4f} rad, end {positions[-20:].mean():+.4f} rad,"
         f" target {args.step:+.4f} rad")
 
+  extra = {}
+  if velocities:
+    velocities = np.array(velocities)
+    extra = {"velocity_t": np.array(velocity_times) - t_command, "velocity": velocities}
+    print(f"Servo-reported velocity: peak {np.abs(velocities).max():.2f} rad/s,"
+          f" at rest std {velocities[extra['velocity_t'] < 0].std():.3f} rad/s")
+
   out = args.out or OUT_DIR / f"real_{args.joint}.npz"
   out.parent.mkdir(parents=True, exist_ok=True)
-  np.savez(out, t=t, position=positions, target=args.step, joint=args.joint)
+  np.savez(out, t=t, position=positions, target=args.step, joint=args.joint, **extra)
   print(f"Saved {out}")
 
 

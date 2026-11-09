@@ -490,7 +490,7 @@ sim = [
     { name = "imageio-ffmpeg", specifier = ">=0.6.0" },
     { name = "jax", extras = ["cuda"], specifier = "<0.10" },
     { name = "jax2onnx", specifier = ">=0.17.1" },
-    { name = "playground", specifier = ">=0.2.0" },
+    { name = "playground", specifier = "==0.2.0" },
 ]
 
 [[package]]
