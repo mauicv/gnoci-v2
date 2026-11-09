@@ -16,7 +16,10 @@ GAIT_FREQ = 1.375
 
 # Joint targets are default pose + ACTION_SCALE * action (joystick.py action_scale).
 # The default pose is the home keyframe, which is all zeros.
-ACTION_SCALE = 0.5
+# Must match the scale the model was trained with: models trained before the
+# switch to 0.25 (serial-pollen-weep, state-unfold-marry, dimension-rain-cape,
+# spoken-opal-phase) need 0.5.
+ACTION_SCALE = 0.25
 
 # With --verbose, print the action and timing every this many steps (5 times a second).
 PRINT_EVERY = 10
