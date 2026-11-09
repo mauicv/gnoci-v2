@@ -7,8 +7,11 @@ from jax2onnx import to_onnx
 from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy, export_onnx
 from pathlib import Path
 
+
+POLICY_NAME = "dimension-rain-cape"
+
 CHECKPOINT_PATH = (
-    Path(__file__).resolve().parents[1] / "checkpoints" / "state-unfold-marry"
+    Path(__file__).resolve().parents[1] / "checkpoints" / POLICY_NAME
 )
 
 if __name__ == "__main__":
@@ -16,4 +19,4 @@ if __name__ == "__main__":
     models_dir.mkdir(parents=True, exist_ok=True)
     normalizer, policy = load_checkpoint(CHECKPOINT_PATH)
     deterministic_policy = make_deterministic_policy(normalizer, policy)
-    export_onnx(deterministic_policy, f"{models_dir}/state-unfold-marry")
+    export_onnx(deterministic_policy, f"{models_dir}/{POLICY_NAME}")
