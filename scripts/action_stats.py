@@ -25,7 +25,12 @@ import jax.numpy as jp
 import numpy as np
 
 from gnoci_v2.training import joystick
-from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy
+from gnoci_v2.control.predict import load_model_config
+from gnoci_v2.training.convert import (
+    checkpoint_action_scale,
+    load_checkpoint,
+    make_deterministic_policy,
+)
 
 CHECKPOINTS = Path("checkpoints")
 COMMAND = slice(6, 9)
@@ -39,6 +44,24 @@ def latest_checkpoint():
   if not paths:
     raise FileNotFoundError(f"No checkpoints in {CHECKPOINTS}")
   return paths[-1]
+
+
+def trained_action_scale(checkpoint, override=None):
+  """The action_scale the policy was trained with, and where it came from.
+
+  A policy run with the wrong scale moves its joints too far or not far
+  enough, so the stats would be meaningless.
+  """
+  if override is not None:
+    return override, "--action-scale"
+  scale = checkpoint_action_scale(checkpoint)
+  if scale is not None:
+    return scale, "checkpoint env_config.json"
+  try:
+    return float(load_model_config(checkpoint.name)["action_scale"]), "models/ config.json"
+  except FileNotFoundError:
+    default = joystick.default_config().action_scale
+    return default, "WARNING: not recorded, using the env default. Pass --action-scale if it differs"
 
 
 def make_rollout(env, policy, num_envs, num_steps):
@@ -142,11 +165,18 @@ def main():
                       help="rad/s; Open Duck's max_motor_velocity for the STS3215")
   parser.add_argument("--hf-cutoff", type=float, default=5.0, help="Hz")
   parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--action-scale", type=float, default=None,
+                      help="Default: the checkpoint's env_config.json, else"
+                           " models/<checkpoint name>/config.json, else the env default")
   args = parser.parse_args()
 
   checkpoint = (args.checkpoint or latest_checkpoint()).resolve()
   print(f"Checkpoint: {checkpoint}")
-  env = joystick.GnociV2Joystick()
+  action_scale, source = trained_action_scale(checkpoint, args.action_scale)
+  print(f"action_scale {action_scale} ({source})")
+  config = joystick.default_config()
+  config.action_scale = action_scale
+  env = joystick.GnociV2Joystick(config=config)
   normalizer, params = load_checkpoint(checkpoint)
   policy = jax.vmap(make_deterministic_policy(normalizer, params))
   rollout = make_rollout(env, policy, args.num_envs, args.steps)
