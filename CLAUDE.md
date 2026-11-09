@@ -10,17 +10,27 @@ Simulation, training and control code for the gnoci v2 robot: a small bipedal ro
 
 Uses `uv` (Python 3.12, `uv_build` backend, src layout).
 
-- Install deps: `uv sync` (default groups `dev` + `sim`)
-- Install only what the robot needs: `uv sync --no-default-groups --group control`
+- Install deps on the dev machine: `uv sync --group sim --group control` (the only default group is `dev`, and a plain `uv sync` removes the others). The sim scripts also use `control` code (the ONNX `PolicyRunner`).
+- Install only what the robot needs (on the Pi): `uv sync --no-default-groups --group control`
 
-Dependency groups: `sim` holds MuJoCo Playground (MuJoCo/MJX/JAX) for simulation and training; `control` is for on-robot control code and should stay free of the sim stack; `dev` holds pytest. Core `[project] dependencies` is empty, so add each new dependency to the group that needs it.
+Dependency groups: `sim` holds MuJoCo Playground (MuJoCo/MJX/JAX), jax2onnx and ffmpeg for simulation and training; `control` (numpy, onnxruntime, rustypot, evdev, gpiod, smbus2) is for on-robot code and must stay free of the sim stack; `dev` holds pytest. Core `[project] dependencies` is only `click`, so add each new dependency to the group that needs it.
+
+- Train: `uv run python -m gnoci_v2.training.runner` (checkpoints go to `checkpoints/<name>/`, with the env config in `env_config.json`). Uses `domain_randomize` from `training/randomize.py`.
+- Export a checkpoint for the robot: `uv run python scripts/convert_policy_jax2onnx.py --name <checkpoint>` writes `models/<name>/policy.onnx` and `config.json` (its `action_scale`). `models/` is committed. `checkpoints/`, `logs/`, `videos/` and `code_ref/` are git-ignored.
+- Run the policy on the robot: `gnoci run --model <name> [--close-loop] [--torque-off] [--stream] [--record logs/hang/real.npz] [--verbose]`. Without `--close-loop` the policy runs but nothing is sent to the servos. Hardware checks: `gnoci test-servos`, `test-imu`, `test-contacts`, `test-joystick`, and `gnoci measure-imu-offsets`.
 - Open the model in the MuJoCo viewer: `uv run python -m mujoco.viewer --mjcf=src/gnoci_v2/training/desc/scene.xml`
-- Run the scratch viewer script: `uv run python scratch.py`
 - Render a random-action rollout of the joystick env to video: `uv run python scripts/rollout_random.py --steps 250 --out videos/random.mp4`. It uses the `track` camera on `body_main`. Offscreen EGL and OSMesa don't work on the dev machine, so leave `MUJOCO_GL` unset (GLFW).
-
-- Run tests: `uv run pytest` (single test: `uv run pytest tests/test_joystick.py::test_joystick_imports_and_inits`)
+- Run tests: `uv run pytest tests` (single test: `uv run pytest tests/test_joystick.py::test_joystick_imports_and_inits`). Pass `tests` explicitly: a bare `uv run pytest` also collects `code_ref/` and fails on its imports. 3 of the `test_onnx_matches_flax_policy` cases currently fail.
 
 No linter or formatter is configured yet.
+
+### Scripts (`scripts/`)
+
+Each has its usage in its docstring.
+- Sim2real comparison: `hang_rollout_sim.py` runs a policy in the sim with the torso fixed in the air (like the robot hung from its stand) and compares it with a robot recording from `gnoci run --record` (`--real`, plus `--replay` to apply the robot's actions open loop, `--real-imu`, `--action-delay`). `measure_servo_response_{real,sim}.py` compare a single-joint step response.
+- Policy analysis in the sim: `action_stats.py` (smoothness, joint speeds, falls), `eval_latency.py` (robustness to action/IMU delay).
+- Robot: `configure_servos.py`, `measure_imu_speed.py`, `measure_servo_read_speed.py`, and `live_view.py`, which shows the observations streamed by `gnoci run --stream` on the laptop.
+- Model: `update_masses.py` writes `desc/masses.py` into `robot.xml`.
 
 ## Architecture
 
@@ -30,15 +40,24 @@ No linter or formatter is configured yet.
   - Frame convention: x is forward, y is left, z is up, for the torso, the `imu` site and the real IMU chip alike. The robot is a "chicken walker": the knees bending backwards is intended.
   - Joint axes are not mirrored between the legs: both `*_hip_lat` joints rotate about world +x, and both `*_hip` and `*_knee` joints rotate about world +y (positive = right-hand rule). So hip pitch and knee have identical limits on both legs, and hip_lat limits mirror each other (left [-0.23, 0.628], right [-0.628, 0.23]). Joint angles are in radians, and 0 is the CAD pose (`home`).
   - The floor is at z=0. The `home` keyframe puts the torso at z=0.2723 with all joints at 0, which is feet just touching the floor.
-  - Masses and inertias: no body has an `<inertial>`. Each visual geom carries its part's `mass`, and MuJoCo computes each body's mass, centre of mass and inertia from those meshes (`inertiagrouprange="2 2"`, so only visual geoms count). The masses are currently guesses (about 1.06 kg in total); edit `mass` on the visual geoms when measured values are available.
+  - Masses and inertias: no body has an `<inertial>`. Each visual geom carries its part's `mass`, and MuJoCo computes each body's mass, centre of mass and inertia from those meshes (`inertiagrouprange="2 2"`, so only visual geoms count), assuming each part has uniform density. The part masses were weighed and live in `desc/masses.py` (grams, keyed by part name without side or servo number). To change them, edit that file and run `scripts/update_masses.py`; don't edit `mass` in `robot.xml` by hand. The model totals 1.05 kg. Its centre of mass has **not** been measured: it comes from the CAD geometry, so wiring, screws and dense parts (battery, Pi, servo internals) are only approximated.
+  - Sites and sensors: an `imu` site on the torso (gyro, accelerometer, velocimeter and frame sensors), foot sites `l_foot`/`r_foot` (position and velocity sensors), box collision geoms `{left,right}_foot_base`, and contact sensors `{left,right}_foot_base_floor_found`.
+  - Solver options follow Open Duck Mini: `iterations=1`, `ls_iterations=5`, `eulerdamp` disabled.
 - `src/gnoci_v2/training/base.py`: `GnociV2Env(mjx_env.MjxEnv)`. Loads `scene.xml` together with every `*.xml` and asset from `desc/` into an assets dict, builds `MjModel` → `mjx.Model`, and provides sensor accessors that read named sensors listed in `constants.py`.
-- `src/gnoci_v2/training/joystick.py`: `GnociV2Joystick`, a velocity-command-tracking locomotion task (rewards, observations, pushes, gait phase).
-- `src/gnoci_v2/training/constants.py`: `SIM_PATH` plus (meant to hold) the sensor, site and body names used by the envs.
+- `src/gnoci_v2/training/joystick.py`: `GnociV2Joystick`, a velocity-command-tracking locomotion task (rewards, observations, pushes, gait phase), adapted from MuJoCo Playground's Berkeley Humanoid for this robot's 6 joints. ctrl_dt 0.02 (50 Hz), sim_dt 0.002. Joint targets are `default_pose + action_scale * action`. It also models latency: an action delay and an IMU delay, each sampled per episode (`latency_config`, in physics substeps).
+  - The 31-value policy observation is: gyro (3), gravity in the IMU frame (3), command (3), joint angles minus the default pose (6), joint velocities (6), last action (6), and gait phase `[cos_l, cos_r, sin_l, sin_r]` (4). The robot's `control/main.py` must build exactly the same vector, so change the two together.
+- `src/gnoci_v2/training/randomize.py`: domain randomization per environment. Floor friction U(0.5, 1.0); joint frictionloss ×U(0.9, 1.1); armature ×U(1.0, 1.05); torso centre of mass shifted by U(-15, 15) mm on each axis; every body's mass ×U(0.9, 1.1), then the torso ±0.1 kg; kp ×U(0.9, 1.1); a servo calibration offset of U(-0.03, 0.03) rad.
+- `src/gnoci_v2/training/constants.py`: `SIM_PATH`, `ENV_CONFIG_FILE`, and the sensor, site, geom and body names the envs use.
+- `src/gnoci_v2/training/runner.py`, `runner_base.py`: PPO training (brax). `convert.py`: loads checkpoints and exports to ONNX.
+- `src/gnoci_v2/control/`: code that runs on the robot (Raspberry Pi), with no sim dependencies.
+  - `main.py`: `Main`, the 50 Hz control loop. It reads the IMU in a 300 Hz thread (`imu_hwi.py`), and the joystick, servo positions and velocities, then builds the observation, runs the policy (`predict.py`, `PolicyRunner` over `models/<name>/policy.onnx`) and sends `servo_hwi.clamp(action_scale * action)` as targets. Gait frequency is fixed at 1.375 Hz, and the phase advances even at zero command, as it does in the sim.
+  - `servo_hwi.py`: STS3215 servos over rustypot. It maps servo IDs, signs and hard-stop limits to the sim's joint order and sign convention.
+  - `record.py`: `Recorder`, behind `gnoci run --record`. It writes each step's `t`, `obs`, `action` and `target` to an `.npz`, in the same format that `hang_rollout_sim.py` writes.
+- `src/gnoci_v2/cli/`: the `gnoci` click CLI (`run`, hardware tests, `measure-imu-offsets`).
+- `src/gnoci_v2/networking/`: `Channel` (on the robot) and `Client` (on the laptop) stream JSON observations over TCP.
 
-### Current state (work in progress)
+### Sim2real findings so far
 
-`base.py` and `joystick.py` were adapted from MuJoCo Playground's Berkeley Humanoid env and have not been fully ported yet. Do not assume they run. Known gaps:
-- Missing imports in `joystick.py` (`Optional`/`Dict`/`Union`/`Any`, `numpy as np`, `mujoco_playground._src.math`, `gait`, `consts`).
-- `constants.py` does not define the sensor names, `ROOT_BODY`, `FEET_SITES`, `FEET_GEOMS` or `task_to_xml` that the envs use.
-- The model has no `imu` site, no foot sites or sensors, and no `*_floor_found` contact sensors yet.
-- `joystick.py` still assumes the Berkeley Humanoid's 12 DoF and joint names (`LL_HR`, `LR_KFE`, …), not this robot's 6 joints.
+- Hung on the stand (logs from 2026-11-09), the robot matches the sim closely when the sim gets the robot's IMU readings (`--real-imu`). Actions are within about 0.03 RMS (correlation over 0.98), positions within about 0.02 rad, and there's no measurable lag. Replaying the robot's actions gives positions within about 0.02 rad. So the servo model, action scale and observation pipeline are good. The robot's joint velocity readings are noisier than the sim's (2–3× more power above 5 Hz).
+- The policy is sensitive to the IMU: the robot swaying on the stand (about 4 Hz) changes its actions by 0.06–0.16 RMS.
+- The hang test doesn't cover mass distribution, foot contact or free torso dynamics, so it can't explain falls. The unmeasured centre of mass is the main suspect.
