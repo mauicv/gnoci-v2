@@ -19,7 +19,7 @@ def default_config() -> config_dict.ConfigDict:
       sim_dt=0.002,
       episode_length=1000,
       action_repeat=1,
-      action_scale=0.3,
+      action_scale=0.5,
       history_len=1,
       soft_joint_pos_limit_factor=0.95,
       min_upright=0.5,  # cos(60 deg): terminate when tilted further.
@@ -67,7 +67,7 @@ def default_config() -> config_dict.ConfigDict:
           ),
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
-          max_foot_height=0.04,
+          max_foot_height=0.05,
           base_height_target=0.27,
       ),
       push_config=config_dict.create(
