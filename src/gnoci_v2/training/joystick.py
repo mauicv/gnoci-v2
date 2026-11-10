@@ -19,7 +19,7 @@ def default_config() -> config_dict.ConfigDict:
       sim_dt=0.002,
       episode_length=1000,
       action_repeat=1,
-      action_scale=0.35,
+      action_scale=0.5,
       history_len=1,
       soft_joint_pos_limit_factor=0.95,
       min_upright=0.5,  # cos(60 deg): terminate when tilted further.
