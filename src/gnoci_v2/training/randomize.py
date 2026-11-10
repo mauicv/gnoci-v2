@@ -18,8 +18,8 @@
 import jax
 from mujoco import mjx
 import jax.numpy as jp
+import numpy as np
 
-FLOOR_GEOM_ID = 0
 TORSO_BODY_ID = 1
 
 
@@ -34,11 +34,18 @@ def domain_randomize(model: mjx.Model, rng: jax.Array):
 
     dof_addr = jp.array([jadd for jadd in model.jnt_dofadr if jadd in dof_id])
 
+    # The geoms that make contacts: the floor and the feet. MuJoCo uses the larger
+    # of two touching geoms' friction, so all of them get the sampled value (with
+    # only the floor's set, the feet's 1.0 always won).
+    contact_geoms = jp.array(np.nonzero(
+        (np.asarray(model.geom_contype) | np.asarray(model.geom_conaffinity)) > 0
+    )[0])
+
     @jax.vmap
     def rand_dynamics(rng):
-        # Floor friction: =U(0.4, 1.0).
+        # Floor and foot friction: =U(0.5, 1.0).
         rng, key = jax.random.split(rng)
-        geom_friction = model.geom_friction.at[FLOOR_GEOM_ID, 0].set(
+        geom_friction = model.geom_friction.at[contact_geoms, 0].set(
             jax.random.uniform(key, minval=0.5, maxval=1.0)  # was 0.4, 1.0
         )
 

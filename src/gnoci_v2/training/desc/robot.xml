@@ -3,7 +3,8 @@
 <mujoco model="gnoci_v2">
   <!-- Body inertias are computed from the visual geoms (group 2), each given its part mass.
        Masses are the weighed part masses from masses.py, written by scripts/update_masses.py.
-       Centres of mass come from the meshes (uniform density) and haven't been measured. -->
+       Centres of mass come from the meshes (uniform density), except the torso: its <inertial>
+       adds TORSO_COM_OFFSET from masses.py. None have been measured. -->
   <compiler angle="radian" meshdir="assets" autolimits="true" inertiagrouprange="2 2" />
   <!-- Solver settings from Open Duck Mini (and MuJoCo Playground's locomotion envs), instead of
        MuJoCo's defaults of iterations=100, ls_iterations=50. Each step starts from the last
@@ -37,6 +38,9 @@
   </default>
   <worldbody>
     <body name="body_main" pos="0 0 0.2723" quat="1 0 0 0" childclass="gnoci_v2">
+      <!-- Torso inertial, written by scripts/update_masses.py: mass and inertia from the
+           meshes, centre of mass from the meshes + TORSO_COM_OFFSET (0.04 0 0 m). -->
+      <inertial pos="0.0194185 0.00176893 0.0998776" quat="0.999265 -0.0212936 -0.0318735 -0.00014875" mass="0.574" diaginertia="0.0021873 0.00209023 0.000701883" />
       <freejoint name="floating_base" />
       <camera name="track" mode="trackcom" pos="0.6 -0.6 0.2" xyaxes="0.7071 0.7071 0 -0.1231 0.1231 0.9847" />
       <!-- Part imu -->

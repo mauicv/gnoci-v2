@@ -23,3 +23,10 @@ MASSES = {
     "foot_side": 11.0,
     "foot_limit_switch": 3.0,
 }
+
+# Added to the torso's centre of mass, in metres in the torso frame (x forward,
+# y left, z up), on top of where the meshes put it. Not measured: fitted on
+# 2026-11-10 by replaying the robot's floor recordings (logs/floor) in the sim,
+# which put it 30-50 mm forward of the model's (about 22 mm for the whole robot).
+# The torso's mass and inertia still come from its meshes.
+TORSO_COM_OFFSET = (0.04, 0.0, 0.0)
