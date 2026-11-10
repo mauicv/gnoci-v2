@@ -14,6 +14,10 @@ IMU_MAX_AGE = 0.05
 # Steps per second of each leg. Training sampled U(1.25, 1.5) per episode, so use the middle.
 GAIT_FREQ = 1.375
 
+# Stop when the filter's tilt has been over fall_tilt for this many control
+# steps (0.1 s), so one bad reading (an impact jolts the filter) doesn't stop it.
+FALL_STEPS = 5
+
 # With --verbose, print the action and timing every this many steps (5 times a second).
 PRINT_EVERY = 10
 
@@ -26,7 +30,8 @@ class Main:
             model_name=DEFAULT_MODEL,
             close_loop=False,
             torque_off=False,
-            verbose=False
+            verbose=False,
+            fall_tilt=60.0,
         ):
         # Load the policy first: a wrong model name fails before any hardware opens.
 
@@ -42,6 +47,11 @@ class Main:
         self.close_loop = close_loop
         self.torque_off = torque_off
         self.verbose = verbose
+        # Degrees from upright at which the robot counts as fallen; None or 0
+        # never stops. Training ends an episode at 60.
+        self.fall_tilt = fall_tilt
+        # The filter's gravity at the latest observation (not observed by the policy).
+        self.gravity = None
         # (gyro, accel, gravity, perf_counter time of the reading), or None
         # before the first. gravity is the filter's, which the policy doesn't use.
         self.imu_data = None
@@ -96,7 +106,7 @@ class Main:
         return phase_obs
 
     def get_observation(self):
-        gyro, accel, _ = self.get_imu()
+        gyro, accel, self.gravity = self.get_imu()
         joystick_data = self.joystick_hwi.read()
         joint_pos = self.servo_hwi.get_positions()
         joint_vel = self.servo_hwi.get_velocities()
@@ -112,10 +122,16 @@ class Main:
             phase_obs
         ))
 
-    def start(self, channel=None, recorder=None):
-        """Runs the control loop until interrupted.
+    def tilt(self):
+        """Degrees from upright, from the filter's gravity at the latest observation."""
+        return float(np.degrees(np.arccos(np.clip(-self.gravity[2], -1.0, 1.0))))
 
-        recorder: a Recorder that gets every step's observation, action and target.
+    def start(self, channel=None, recorder=None):
+        """Runs the control loop until interrupted, or until the robot falls.
+
+        recorder: a Recorder that gets every step's observation, action, target
+        and the filter's gravity.
+        Returns "fell" if it stopped because the robot tipped over.
         """
         if not self.ready:
             raise RuntimeError("Main process not ready")
@@ -124,6 +140,7 @@ class Main:
         next_time = time.perf_counter()
         prev_start = next_time
         step = 0
+        tilted_steps = 0
         while True:
             start_time = time.perf_counter()
             observation = self.get_observation()
@@ -137,7 +154,13 @@ class Main:
             if self.close_loop:
                 self.servo_hwi.set_positions(target)
             if recorder is not None:
-                recorder.add(start_time, observation, action, target)
+                recorder.add(start_time, observation, action, target, self.gravity)
+
+            if self.fall_tilt:
+                tilted_steps = tilted_steps + 1 if self.tilt() > self.fall_tilt else 0
+                if tilted_steps >= FALL_STEPS:
+                    print(f"Fell: tilted {self.tilt():.0f} degrees after {step * self.dt:.1f} s")
+                    return "fell"
 
             end_time = time.perf_counter()
             if self.verbose and step % PRINT_EVERY == 0:
