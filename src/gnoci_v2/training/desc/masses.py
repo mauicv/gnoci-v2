@@ -28,5 +28,7 @@ MASSES = {
 # y left, z up), on top of where the meshes put it. Not measured: fitted on
 # 2026-11-10 by replaying the robot's floor recordings (logs/floor) in the sim,
 # which put it 30-50 mm forward of the model's (about 22 mm for the whole robot).
+# dim-muddy-fiber, trained at +40 mm, then fell backward on the robot, and its
+# recordings fitted +20 mm, so it's now 20 mm.
 # The torso's mass and inertia still come from its meshes.
-TORSO_COM_OFFSET = (0.04, 0.0, 0.0)
+TORSO_COM_OFFSET = (0.02, 0.0, 0.0)
