@@ -1,3 +1,6 @@
+import math
+import time
+
 import click
 from gnoci_v2.control.main import GAIT_FREQ, Main
 from gnoci_v2.control.record import Recorder
@@ -67,7 +70,15 @@ from gnoci_v2.networking.channel import Channel
     help="Save every step's observation, action and target to this .npz when"
     " stopped (Ctrl-C). Compare with the sim using scripts/hang_rollout_sim.py --real.",
 )
-def run(model_name, close_loop, torque_off, verbose, host, port, stream, record):
+@click.option(
+    "--start-delay",
+    "start_delay",
+    default=5.0,
+    show_default=True,
+    type=click.FloatRange(min=0),
+    help="Seconds to hold the home pose before the policy starts, e.g. to set the robot down.",
+)
+def run(model_name, close_loop, torque_off, verbose, host, port, stream, record, start_delay):
     if close_loop and torque_off:
         raise click.UsageError("--close-loop and --torque-off can't be used together.")
 
@@ -102,6 +113,7 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream, record)
     # Torque goes off however this ends, including an error or Ctrl-C.
     try:
         main.init_main_process()
+        countdown(start_delay)
         main.start(channel, recorder)
     finally:
         main.stop()
@@ -114,3 +126,12 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream, record)
             else:
                 print(f"Recorded {len(recorder.t)} steps to {path}")
         print("Stopped")
+
+
+def countdown(seconds):
+    """Waits seconds, printing the time left each second. The servos hold home."""
+    end = time.monotonic() + seconds
+    while (left := end - time.monotonic()) > 0:
+        print(f"Starting the policy in {math.ceil(left)} s")
+        time.sleep(min(1.0, left))
+    print("Policy started")
