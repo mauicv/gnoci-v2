@@ -16,8 +16,8 @@ accelerometer and gyro sensors, to measure that error.
   uv run python scripts/imu_filter_sim.py --model cat-fire-potential --feed filter \
       --episodes 1 --video videos/imu_filter.mp4
 
-The filter runs every physics substep (2 ms) with alpha chosen to give the
-same time constant as the robot's (alpha 0.98 at 300 Hz, about 0.16 s). The
+The filter runs every physics substep (2 ms) with the robot's time constant
+(DEFAULT_TAU in control/filter.py; --tau 0.163 for the old filter). The
 sim's accelerometer has no sensor noise and rigid-contact impacts, so its
 spikes may differ from the real chip's.
 """
@@ -28,14 +28,14 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-from gnoci_v2.control.filter import ComplementaryFilter
+from gnoci_v2.control.filter import DEFAULT_TAU, ComplementaryFilter
 from gnoci_v2.control.main import GAIT_FREQ
 from gnoci_v2.control.predict import PolicyRunner
 from gnoci_v2.training.constants import SIM_PATH
 
 SCENE = SIM_PATH / "desc" / "scene.xml"
 CTRL_DT, SIM_DT = 0.02, 0.002
-ROBOT_ALPHA, ROBOT_IMU_DT = 0.98, 1 / 300
+OLD_ROBOT_TAU = 0.98 * (1 / 300) / (1 - 0.98)  # alpha 0.98 at 300 Hz
 JOINTS = ["left_hip_lat", "left_hip", "left_knee", "right_hip_lat", "right_hip", "right_knee"]
 DEFAULT_COMMANDS = ([0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.15, 0.0])
 
@@ -43,7 +43,7 @@ DEFAULT_COMMANDS = ([0.0, 0.0, 0.0], [0.2, 0.0, 0.0], [0.0, 0.15, 0.0])
 AFTER_FALL_STEPS = 50  # Steps still rendered after a fall, so the fall is visible.
 
 
-def episode(model, policy, command, steps, feed, rng, alpha, frame_fn=None):
+def episode(model, policy, command, steps, feed, rng, tau, frame_fn=None):
   """Returns per-step (true gravity, filter gravity) and the step it fell at (or None).
 
   frame_fn(data, true_gravity, filter_gravity) is called once per control step.
@@ -62,7 +62,7 @@ def episode(model, policy, command, steps, feed, rng, alpha, frame_fn=None):
   gyro_adr = model.sensor_adr[model.sensor("gyro").id]
   acc_adr = model.sensor_adr[model.sensor("accelerometer").id]
   act = [model.actuator(j).id for j in JOINTS]
-  filt = ComplementaryFilter(alpha=alpha, dt=SIM_DT)
+  filt = ComplementaryFilter(tau=tau, dt=SIM_DT)
 
   def true_gravity():
     return data.site_xmat[imu].reshape(3, 3).T @ np.array([0.0, 0.0, -1.0])
@@ -70,7 +70,11 @@ def episode(model, policy, command, steps, feed, rng, alpha, frame_fn=None):
   def sensors():
     return data.sensordata[acc_adr:acc_adr + 3].copy(), data.sensordata[gyro_adr:gyro_adr + 3].copy()
 
-  filt.update(*sensors())
+  # Start the filter at the true tilt: on the robot it starts with the robot still,
+  # whereas here the first accelerometer reading includes the jolt of the reset.
+  g0 = true_gravity()
+  filt.roll = float(np.arctan2(-g0[1], -g0[2]))
+  filt.pitch = float(np.arcsin(np.clip(g0[0], -1, 1)))
   phase = np.array([0.0, np.pi])
   last_action = np.zeros(6)
   n_sub = int(round(CTRL_DT / SIM_DT))
@@ -126,11 +130,14 @@ def main():
   parser.add_argument("--video", type=Path, default=None,
                       help="Render the first episode of each command, one after another (.mp4).")
   parser.add_argument("--camera", default="track")
+  parser.add_argument("--tau", type=float, default=DEFAULT_TAU,
+                      help="Filter time constant (s). Default: the robot's. The old robot"
+                           f" filter (alpha 0.98 at 300 Hz) was {OLD_ROBOT_TAU:.3f} s.")
   args = parser.parse_args()
 
   model = mujoco.MjModel.from_xml_path(str(SCENE))
   model.opt.timestep = SIM_DT
-  tau = ROBOT_ALPHA * ROBOT_IMU_DT / (1 - ROBOT_ALPHA)
+  tau = args.tau
   alpha = tau / (tau + SIM_DT)
   policy = PolicyRunner(args.model)
   print(f"{args.model}, policy fed the {args.feed} gravity, filter time constant {tau:.3f} s"
@@ -163,7 +170,7 @@ def main():
     for e in range(args.episodes):
       frame_fn = make_frame_fn(command) if args.video and e == 0 else None
       truth, est, fell = episode(model, policy, np.array(command), args.steps, args.feed, rng,
-                                 alpha, frame_fn)
+                                 tau, frame_fn)
       falls += fell is not None
       if len(truth) > args.skip:
         tr, tp = angles(truth[args.skip:])
