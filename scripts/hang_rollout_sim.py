@@ -44,7 +44,7 @@ CTRL_DT = 0.02  # Main.control_freq = 50 Hz, the same as training.
 SIM_DT = 0.002  # Training's sim_dt.
 JOINTS = ["left_hip_lat", "left_hip", "left_knee", "right_hip_lat", "right_hip", "right_knee"]
 # Slices of the 31-value observation.
-GYRO, GRAVITY, COMMAND = slice(0, 3), slice(3, 6), slice(6, 9)
+GYRO, ACCEL, COMMAND = slice(0, 3), slice(3, 6), slice(6, 9)
 JOINT_POS, JOINT_VEL, LAST_ACT, PHASE = slice(9, 15), slice(15, 21), slice(21, 27), slice(27, 31)
 
 
@@ -52,7 +52,7 @@ def rollout(model, policy, steps, commands, action_delay=0.0, real_imu=None, act
             frame_fn=None):
   """Runs the policy (or replays actions) for steps control steps.
 
-  commands: (steps, 3). real_imu: optional (steps, 6) gyro + gravity to put in
+  commands: (steps, 3). real_imu: optional (steps, 6) gyro + accelerometer to put in
   the observation instead of the sim's. actions: optional (steps, 6) actions
   to apply instead of the policy's. action_delay: seconds between reading the
   observation and the target taking effect. frame_fn(data) is called once per
@@ -82,12 +82,14 @@ def rollout(model, policy, steps, commands, action_delay=0.0, real_imu=None, act
 
   for k in range(steps):
     if real_imu is not None:
-      gyro, gravity = real_imu[k, :3], real_imu[k, 3:]
+      gyro, accel = real_imu[k, :3], real_imu[k, 3:]
     else:
       gyro = data.sensordata[gyro_adr:gyro_adr + 3].copy()
-      gravity = data.site_xmat[imu].reshape(3, 3).T @ np.array([0.0, 0.0, -1.0])
+      # MuJoCo's accelerometer reads 0 on a body fixed to the world, so use what
+      # a still torso measures: the reaction to gravity, in g.
+      accel = data.site_xmat[imu].reshape(3, 3).T @ np.array([0.0, 0.0, 1.0])
     obs = np.concatenate([
-        gyro, gravity, commands[k],
+        gyro, accel, commands[k],
         data.qpos[qpos_adr], data.qvel[dof_adr],
         last_action,
         np.cos(phase), np.sin(phase),
@@ -185,7 +187,7 @@ def main() -> None:
                       help="With --real: apply the robot's recorded actions instead of running"
                            " the policy.")
   parser.add_argument("--real-imu", action="store_true",
-                      help="With --real: put the robot's recorded gyro and gravity in the"
+                      help="With --real: put the robot's recorded gyro and accelerometer in the"
                            " observation, e.g. if it hangs tilted or swings on the stand.")
   parser.add_argument("--model", default=None, help=f"Default: the recording's, or {DEFAULT_MODEL}.")
   parser.add_argument("--steps", type=int, default=500, help="Control steps (ignored with --real).")
@@ -240,7 +242,7 @@ def main() -> None:
   sim = rollout(
       model, policy, steps, commands,
       action_delay=args.action_delay,
-      real_imu=np.concatenate([real["obs"][:, GYRO], real["obs"][:, GRAVITY]], axis=1)
+      real_imu=np.concatenate([real["obs"][:, GYRO], real["obs"][:, ACCEL]], axis=1)
       if args.real_imu else None,
       actions=real["action"] if args.replay else None,
       frame_fn=frame_fn,

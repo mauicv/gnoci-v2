@@ -86,14 +86,17 @@ class IMUHWI:
         return decode_imu(read_imu_data(self.bus))
 
     def read(self):
-        """Returns the policy's (gyro in rad/s, unit gravity vector), in the IMU frame.
+        """Returns (gyro in rad/s, accel in g, unit gravity vector), in the IMU frame.
 
-        Call this once per control step, since each call advances the filter by dt.
+        gyro and accel, with the offsets removed, are the policy's observation;
+        accel is about [0, 0, 1] when level and still. gravity is the filter's
+        estimate, for monitoring only. Each call advances the filter by dt.
         """
         gyro, accel = self.read_raw()
         gyro = gyro - self.gyro_offset
-        self.filter.update(accel - self.accel_offset, gyro)
-        return gyro, self.filter.gravity
+        accel = accel - self.accel_offset
+        self.filter.update(accel, gyro)
+        return gyro, accel, self.filter.gravity
 
     def measure_offsets(self, samples=500, sample_dt=0.005):
         """Averages readings with the robot still and level, then saves the offsets."""

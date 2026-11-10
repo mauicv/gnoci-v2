@@ -42,14 +42,15 @@ class Main:
         self.close_loop = close_loop
         self.torque_off = torque_off
         self.verbose = verbose
-        # (gyro, gravity, perf_counter time of the reading), or None before the first.
+        # (gyro, accel, gravity, perf_counter time of the reading), or None
+        # before the first. gravity is the filter's, which the policy doesn't use.
         self.imu_data = None
         self.imu_hwi = IMUHWI(dt=0.00333333)
 
         def read_imu():
-            gyro, gravity = self.imu_hwi.read()
+            gyro, accel, gravity = self.imu_hwi.read()
             # One assignment, so the main thread never sees a half-updated reading.
-            self.imu_data = (gyro, gravity, time.perf_counter())
+            self.imu_data = (gyro, accel, gravity, time.perf_counter())
 
         self.imu_loop = Loop(
             func=read_imu,
@@ -68,16 +69,16 @@ class Main:
         self.ready = True
 
     def get_imu(self):
-        """Returns the latest (gyro, gravity). Raises if the IMU thread has stopped."""
+        """Returns the latest (gyro, accel, gravity). Raises if the IMU thread has stopped."""
         if self.imu_loop.failed:
             raise RuntimeError("The IMU loop failed, see the traceback above")
         if self.imu_data is None:
             raise RuntimeError("No IMU reading yet")
-        gyro, gravity, timestamp = self.imu_data
+        gyro, accel, gravity, timestamp = self.imu_data
         age = time.perf_counter() - timestamp
         if age > IMU_MAX_AGE:
             raise RuntimeError(f"IMU reading is stale ({age * 1000:.0f} ms old)")
-        return gyro, gravity
+        return gyro, accel, gravity
 
     def reset_phase(self):
         """Starts the gait cycle as training did: [left, right], half a cycle apart."""
@@ -95,7 +96,7 @@ class Main:
         return phase_obs
 
     def get_observation(self):
-        gyro, gravity = self.get_imu()
+        gyro, accel, _ = self.get_imu()
         joystick_data = self.joystick_hwi.read()
         joint_pos = self.servo_hwi.get_positions()
         joint_vel = self.servo_hwi.get_velocities()
@@ -103,7 +104,7 @@ class Main:
         phase_obs = self.step_phase()
         return np.concatenate((
             gyro,
-            gravity,
+            accel,
             joystick_data,
             joint_pos,
             joint_vel,

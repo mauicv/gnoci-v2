@@ -1,5 +1,9 @@
 """How far the robot's gravity estimate is from the truth while walking, in the sim.
 
+Only for models trained on the gravity observation, before the policy
+observation switched to the raw accelerometer (2026-11-10): it puts gravity in
+obs[3:6]. This is how that switch was motivated.
+
 Training observes the exact gravity direction (site_xmat.T @ [0, 0, -1]). The
 robot instead estimates it with ComplementaryFilter (control/filter.py) from
 the MPU6050's accelerometer and gyro, at 300 Hz. While walking the

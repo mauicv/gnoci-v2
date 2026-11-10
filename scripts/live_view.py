@@ -27,7 +27,7 @@ from gnoci_v2.training.constants import SIM_PATH
 SCENE = SIM_PATH / "desc" / "scene.xml"
 
 # Slices of the policy observation (see Main.get_observation).
-GRAVITY = slice(3, 6)
+ACCEL = slice(3, 6)
 JOINT_POS = slice(9, 15)
 OBS_SIZE = 31
 
@@ -55,6 +55,16 @@ def gravity_to_quat(gravity):
   return quat
 
 
+def obs_gravity(obs):
+  """The unit gravity vector, from the observation's accelerometer.
+
+  A still accelerometer reads the reaction to gravity (up), so gravity is its
+  negated direction. While the robot moves this also includes its acceleration.
+  """
+  accel = np.asarray(obs[ACCEL], dtype=float)
+  return -accel / np.linalg.norm(accel)
+
+
 def sim_gravity(data, site_id):
   """The policy's gravity obs, computed from the sim's pose (joystick.py)."""
   return data.site_xmat[site_id].reshape(3, 3).T @ np.array([0.0, 0.0, -1.0])
@@ -71,7 +81,7 @@ def roll_pitch(gravity):
 def apply_obs(model, data, obs, height):
   """Writes the observation's pose into data and runs mj_forward."""
   data.qpos[0:3] = [0.0, 0.0, height]
-  data.qpos[3:7] = gravity_to_quat(obs[GRAVITY])
+  data.qpos[3:7] = gravity_to_quat(obs_gravity(obs))
   data.qpos[7:13] = obs[JOINT_POS]
   data.qvel[:] = 0.0
   mujoco.mj_forward(model, data)
@@ -79,11 +89,11 @@ def apply_obs(model, data, obs, height):
 
 def status_text(model, obs, gravity_error, rate):
   """Left and right columns of the on-screen text."""
-  roll, pitch = roll_pitch(obs[GRAVITY])
-  gravity = np.array2string(obs[GRAVITY], precision=3, suppress_small=True)
+  roll, pitch = roll_pitch(obs_gravity(obs))
+  gravity = np.array2string(obs_gravity(obs), precision=3, suppress_small=True)
   labels = [
       "rate",
-      "gravity (real)",
+      "gravity (from accel)",
       "gravity error",
       "roll (+ left side up)",
       "pitch (+ nose down)",
@@ -148,7 +158,7 @@ def main() -> None:
           apply_obs(model, data, obs, args.height)
           # Should be ~1e-7: the sim shows exactly the tilt the robot reports.
           gravity_error = np.max(np.abs(
-              sim_gravity(data, site_id) - obs[GRAVITY] / np.linalg.norm(obs[GRAVITY])
+              sim_gravity(data, site_id) - obs_gravity(obs)
           ))
         if now - last_text > 1 / TEXT_HZ:
           left, right = status_text(model, obs, gravity_error, rate)

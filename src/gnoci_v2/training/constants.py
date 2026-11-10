@@ -23,6 +23,10 @@ SIM_PATH = pathlib.Path(__file__).parent
 # Saved inside each checkpoint dir: the env config the policy was trained with.
 ENV_CONFIG_FILE = "env_config.json"
 
+# m/s^2, MuJoCo's default gravity. The accelerometer observation is in g (the
+# MPU6050's unit), so the sim's reading is divided by this.
+STANDARD_GRAVITY = 9.81
+
 FEET_SITES = [
     "l_foot",
     "r_foot",

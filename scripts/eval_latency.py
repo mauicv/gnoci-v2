@@ -11,7 +11,7 @@ as JSON.
 
 Delays are in milliseconds and must be multiples of sim_dt (2 ms). An action
 delay of D ms means an action takes effect D ms after the observation it was
-computed from; an IMU delay of E ms means the gyro and gravity in the
+computed from; an IMU delay of E ms means the gyro and accelerometer in the
 observation are E ms old.
 
 The env's observation reports the action from one control step back, as the

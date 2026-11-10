@@ -23,14 +23,14 @@ def default_config() -> config_dict.ConfigDict:
       history_len=1,
       soft_joint_pos_limit_factor=0.95,
       min_upright=0.5,  # cos(60 deg): terminate when tilted further.
-      min_base_height=0.15,  # m; home is 0.2723.
+      min_base_height=0.15,  # m; home is 0.2703.
       noise_config=config_dict.create(
           level=1.0,  # Set to 0.0 to disable noise.
           scales=config_dict.create(
               hip_pos=0.03,  # rad
               knee_pos=0.05,
               joint_vel=1.5,  # rad/s
-              gravity=0.05,
+              accelerometer=0.05,  # g
               linvel=0.1,
               gyro=0.2,  # angvel.
           ),
@@ -77,7 +77,7 @@ def default_config() -> config_dict.ConfigDict:
       ),
       # Latency, in physics substeps (sim_dt each), sampled per episode from
       # [low, high]. An action takes effect action_delay substeps after the
-      # observation it was computed from; the gyro and gravity in the
+      # observation it was computed from; the gyro and accelerometer in the
       # observation are imu_delay substeps old. [0, 0] is no delay.
       latency_config=config_dict.create(
           action_delay_range=[0, 15],
@@ -191,10 +191,19 @@ class GnociV2Joystick(GnociV2Env):
     # Control steps of past targets needed to cover the largest action delay.
     self._target_history_len = -(-self._max_action_delay // self.n_substeps) + 1
 
-  def _imu_reading(self, data: mjx.Data) -> jax.Array:
-    """The noiseless [gyro, gravity] the observation uses."""
-    gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
-    return jp.concatenate([self.get_gyro(data), gravity])
+  def _imu_reading(self, data: mjx.Data, at_rest: bool = False) -> jax.Array:
+    """The noiseless [gyro, accelerometer] the observation uses.
+
+    The accelerometer is in g, the MPU6050's unit: MuJoCo's sensor is the
+    specific force in m/s^2, so about [0, 0, 9.81] upright and still.
+    at_rest: report what a still torso measures, the reaction to gravity
+    (R.T @ [0, 0, 1]), instead of the sensor.
+    """
+    if at_rest:
+      accel = data.site_xmat[self._site_id].T @ jp.array([0, 0, 1])
+    else:
+      accel = self.get_accelerometer(data) / consts.STANDARD_GRAVITY
+    return jp.concatenate([self.get_gyro(data), accel])
 
   def _physics_step(self, data, info, motor_targets):
     """Runs one control step of physics, applying the action and IMU delays.
@@ -323,9 +332,11 @@ class GnociV2Joystick(GnociV2Env):
         imu_key, (), latency.imu_delay_range[0], latency.imu_delay_range[1] + 1
     )
     info["target_history"] = jp.tile(data.ctrl, (self._target_history_len, 1))
-    info["imu_history"] = jp.tile(
-        self._imu_reading(data), (self._max_imu_delay + 1, 1)
-    )
+    # Reset puts the feet just touching the floor, so the robot is in free fall
+    # for an instant and the accelerometer reads 0 (then spikes as it lands).
+    # The real robot starts standing still, so start from the at-rest reading.
+    start_imu = self._imu_reading(data, at_rest=True)
+    info["imu_history"] = jp.tile(start_imu, (self._max_imu_delay + 1, 1))
 
     metrics = {}
     for k in self._config.reward_config.scales.keys():
@@ -337,7 +348,7 @@ class GnociV2Joystick(GnociV2Env):
         for sensor_id in self._feet_floor_found_sensor
     ])
 
-    obs = self._get_obs(data, info, contact)
+    obs = self._get_obs(data, info, contact, imu=start_imu)
     reward, done = jp.zeros(2)
     return mjx_env.State(data, obs, reward, done, metrics, info)
 
@@ -437,16 +448,19 @@ class GnociV2Joystick(GnociV2Env):
       info: dict[str, Any],
       contact: jax.Array,
       last_act: Optional[jax.Array] = None,
+      imu: Optional[jax.Array] = None,
   ) -> mjx_env.Observation:
-    """last_act: the action the obs reports as the last one. Default info["last_act"]."""
+    """last_act: the action the obs reports as the last one. Default info["last_act"].
+
+    imu: the [gyro, accelerometer] to observe. Default the (delayed) sensors.
+    """
     if last_act is None:
       last_act = info["last_act"]
-    if self._max_imu_delay > 0:
+    if imu is None and self._max_imu_delay > 0:
       imu = info["imu_history"][info["imu_delay"]]
-      gyro, gravity = imu[:3], imu[3:]
-    else:
-      gyro = self.get_gyro(data)
-      gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
+    elif imu is None:
+      imu = self._imu_reading(data)
+    gyro, accelerometer = imu[:3], imu[3:]
     info["rng"], noise_rng = jax.random.split(info["rng"])
     noisy_gyro = (
         gyro
@@ -456,11 +470,11 @@ class GnociV2Joystick(GnociV2Env):
     )
 
     info["rng"], noise_rng = jax.random.split(info["rng"])
-    noisy_gravity = (
-        gravity
-        + (2 * jax.random.uniform(noise_rng, shape=gravity.shape) - 1)
+    noisy_accelerometer = (
+        accelerometer
+        + (2 * jax.random.uniform(noise_rng, shape=accelerometer.shape) - 1)
         * self._config.noise_config.level
-        * self._config.noise_config.scales.gravity
+        * self._config.noise_config.scales.accelerometer
     )
 
     joint_angles = data.qpos[7:]
@@ -496,7 +510,7 @@ class GnociV2Joystick(GnociV2Env):
 
     state = jp.hstack([
         noisy_gyro,  # 3
-        noisy_gravity,  # 3
+        noisy_accelerometer,  # 3, in g
         info["command"],  # 3
         noisy_joint_angles - self._default_pose,  # 6
         noisy_joint_vel,  # 6
@@ -504,7 +518,8 @@ class GnociV2Joystick(GnociV2Env):
         phase,
     ])
 
-    accelerometer = self.get_accelerometer(data)
+    # Like the foot contacts, gravity is only in the critic's privileged state.
+    gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
     global_angvel = self.get_global_angvel(data)
     feet_vel = data.sensordata[self._foot_linvel_sensor_adr].ravel()
     root_height = data.qpos[2]
@@ -512,7 +527,7 @@ class GnociV2Joystick(GnociV2Env):
     privileged_state = jp.hstack([
         state,
         gyro,  # 3
-        accelerometer,  # 3
+        self.get_accelerometer(data),  # 3, m/s^2
         gravity,  # 3
         linvel,  # 3
         global_angvel,  # 3

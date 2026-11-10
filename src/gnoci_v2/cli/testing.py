@@ -67,8 +67,11 @@ def test_imu():
     print("Testing IMU...")
     imu_hwi = IMUHWI()
     while True:
-        gyro, gravity = imu_hwi.read()
-        print(f"Gyro (rad/s): {np.round(gyro, 3)}, Gravity: {np.round(gravity, 3)}")
+        gyro, accel, gravity = imu_hwi.read()
+        print(
+            f"Gyro (rad/s): {np.round(gyro, 3)}, Accel (g): {np.round(accel, 3)},"
+            f" Gravity (filter): {np.round(gravity, 3)}"
+        )
         time.sleep(imu_hwi.filter.dt)
 
 
