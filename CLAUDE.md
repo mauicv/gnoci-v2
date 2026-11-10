@@ -28,7 +28,6 @@ No linter or formatter is configured yet.
 
 Each has its usage in its docstring.
 - Sim2real comparison: `hang_rollout_sim.py` runs a policy in the sim with the torso fixed in the air (like the robot hung from its stand) and compares it with a robot recording from `gnoci run --record` (`--real`, plus `--replay` to apply the robot's actions open loop, `--real-imu`, `--action-delay`). `measure_servo_response_{real,sim}.py` compare a single-joint step response.
-- IMU: `imu_filter_sim.py` runs the robot's complementary filter on the sim's accelerometer and gyro while the policy walks, and measures its tilt error (`--feed filter` gives the policy the filter's gravity, `--tau` sets the time constant).
 - Policy analysis in the sim: `action_stats.py` (smoothness, joint speeds, falls), `eval_latency.py` (robustness to action/IMU delay).
 - Robot: `configure_servos.py`, `measure_imu_speed.py`, `measure_servo_read_speed.py`, and `live_view.py`, which shows the observations streamed by `gnoci run --stream` on the laptop.
 - Model: `update_masses.py` writes `desc/masses.py` into `robot.xml`.
@@ -61,5 +60,4 @@ Each has its usage in its docstring.
 
 - Hung on the stand (logs from 2026-11-09), the robot matches the sim closely when the sim gets the robot's IMU readings (`--real-imu`). Actions are within about 0.03 RMS (correlation over 0.98), positions within about 0.02 rad, and there's no measurable lag. Replaying the robot's actions gives positions within about 0.02 rad. So the servo model, action scale and observation pipeline are good. The robot's joint velocity readings are noisier than the sim's (2–3× more power above 5 Hz).
 - The policy is sensitive to the IMU: the robot swaying on the stand (about 4 Hz) changes its actions by 0.06–0.16 RMS.
-- The hang test doesn't cover mass distribution, foot contact or free torso dynamics, so it can't explain falls.
-- The IMU filter (2026-11-10, `scripts/imu_filter_sim.py`): training observes the exact gravity, but the robot estimates it with `control/filter.py`. With the old time constant of 0.16 s, the filter read the walking sway as 6–7° of false roll, and `cat-fire-potential` fed the filter's gravity fell in most sim episodes (0 with true gravity). With 0.5 s or longer it didn't fall. The robot now uses `DEFAULT_TAU` = 1 s, and `Main.init_main_process` re-measures the gyro bias with the robot still at home, since a bias b reads as about b × tau of tilt. Not yet tested on the robot.
+- The hang test doesn't cover mass distribution, foot contact or free torso dynamics, so it can't explain falls. The unmeasured centre of mass is the main suspect.

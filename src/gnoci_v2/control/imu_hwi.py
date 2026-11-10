@@ -69,9 +69,6 @@ class IMUHWI:
         self.bus = smbus.SMBus(1)
         init_mpu6050(self.bus)
         self.filter = ComplementaryFilter(dt=dt)
-        # Guards the offsets and filter, so measure_gyro_bias can run while
-        # another thread calls read().
-        self.lock = th.Lock()
 
     def load_offsets(self):
         try:
@@ -94,33 +91,9 @@ class IMUHWI:
         Call this once per control step, since each call advances the filter by dt.
         """
         gyro, accel = self.read_raw()
-        with self.lock:
-            gyro = gyro - self.gyro_offset
-            self.filter.update(accel - self.accel_offset, gyro)
-            return gyro, self.filter.gravity
-
-    def measure_gyro_bias(self, seconds=1.0, sample_dt=0.005):
-        """Re-measures the gyro offset with the robot still, then restarts the filter.
-
-        The MPU6050's gyro bias drifts (with temperature, for one), and with the
-        filter's time constant tau a bias of b rad/s reads as about b * tau rad
-        of tilt. Only the gyro offset changes, and it isn't saved to the file.
-        Returns the change from the previous offset, in rad/s. Raises
-        ValueError, keeping the old offset, if the robot was moving.
-        """
-        gyro = []
-        end = time.perf_counter() + seconds
-        while time.perf_counter() < end:
-            gyro.append(self.read_raw()[0])
-            time.sleep(sample_dt)
-        gyro = np.array(gyro)
-        if np.max(gyro.std(axis=0)) > MAX_STILL_GYRO_STD:
-            raise ValueError("The gyro is too noisy to re-measure its bias. Keep the robot still.")
-        with self.lock:
-            change = gyro.mean(axis=0) - self.gyro_offset
-            self.gyro_offset = gyro.mean(axis=0)
-            self.filter.reset()
-        return change
+        gyro = gyro - self.gyro_offset
+        self.filter.update(accel - self.accel_offset, gyro)
+        return gyro, self.filter.gravity
 
     def measure_offsets(self, samples=500, sample_dt=0.005):
         """Averages readings with the robot still and level, then saves the offsets."""

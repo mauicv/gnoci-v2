@@ -11,8 +11,6 @@ import time
 # Stop if the newest IMU reading is older than this, in seconds (5 IMU ticks).
 IMU_MAX_AGE = 0.05
 
-IMU_FREQ = 300
-
 # Steps per second of each leg. Training sampled U(1.25, 1.5) per episode, so use the middle.
 GAIT_FREQ = 1.375
 
@@ -46,7 +44,7 @@ class Main:
         self.verbose = verbose
         # (gyro, gravity, perf_counter time of the reading), or None before the first.
         self.imu_data = None
-        self.imu_hwi = IMUHWI(dt=1 / IMU_FREQ)
+        self.imu_hwi = IMUHWI(dt=0.00333333)
 
         def read_imu():
             gyro, gravity = self.imu_hwi.read()
@@ -55,20 +53,14 @@ class Main:
 
         self.imu_loop = Loop(
             func=read_imu,
-            hz=IMU_FREQ,
+            hz=300,
         )
         self.ready = False
 
     def init_main_process(self):
+        # Start the IMU first, so its filter settles while the servos move home.
         self.imu_loop.start()
         self.servo_hwi.init_servos()  # Blocks until the servos reach home.
-        # The robot is still at home now, so re-measure the gyro bias (it drifts,
-        # and the filter turns bias into tilt). This also restarts the filter.
-        try:
-            change = self.imu_hwi.measure_gyro_bias()
-            print(f"Gyro bias re-measured, {np.round(change, 4)} rad/s from the saved offset")
-        except ValueError as e:
-            print(f"{e} Using the saved gyro offset.")
         self.get_imu()  # Fails here, before walking, if the IMU isn't running.
         self.reset_phase()
         if self.torque_off:
