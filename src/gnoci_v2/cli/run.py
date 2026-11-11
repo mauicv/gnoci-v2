@@ -78,7 +78,17 @@ from gnoci_v2.networking.channel import Channel
     type=click.FloatRange(min=0),
     help="Seconds to hold the home pose before the policy starts, e.g. to set the robot down.",
 )
-def run(model_name, close_loop, torque_off, verbose, host, port, stream, record, start_delay):
+@click.option(
+    "--fall-tilt",
+    "fall_tilt",
+    default=60.0,
+    show_default=True,
+    type=click.FloatRange(min=0),
+    help="Stop (torque off, recording saved) once the torso is tilted more than"
+    " this many degrees for 0.1 s. 0 never stops.",
+)
+def run(model_name, close_loop, torque_off, verbose, host, port, stream, record, start_delay,
+        fall_tilt):
     if close_loop and torque_off:
         raise click.UsageError("--close-loop and --torque-off can't be used together.")
 
@@ -87,7 +97,8 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream, record,
         model_name=model_name,
         close_loop=close_loop,
         torque_off=torque_off,
-        verbose=verbose
+        verbose=verbose,
+        fall_tilt=fall_tilt,
     )
     print(
         f"Loaded policy {main.policy.name} from {main.policy.path}"
