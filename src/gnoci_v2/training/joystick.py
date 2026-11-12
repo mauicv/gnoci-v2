@@ -83,6 +83,15 @@ def default_config() -> config_dict.ConfigDict:
           action_delay_range=[0, 15],
           imu_delay_range=[0, 5],
       ),
+      # The robot doesn't observe the true gravity: it estimates it with a
+      # complementary filter (control/filter.py) on the accelerometer and
+      # gyro, which reads the torso's own acceleration as extra tilt. The
+      # policy's gravity observation comes from the same filter, run every
+      # physics substep on the sim's accelerometer and gyro. This is its time
+      # constant (s); the robot's alpha 0.98 at 300 Hz is
+      # 0.98 * (1/300) / (1 - 0.98) = 0.163 s. Rewards, termination and the
+      # critic still use the true gravity.
+      imu_filter_tau=0.163,
       lin_vel_x=[-0.3, 0.3],
       lin_vel_y=[-0.2, 0.2],
       ang_vel_yaw=[-1.0, 1.0],
@@ -184,17 +193,48 @@ class GnociV2Joystick(GnociV2Env):
     ]
 
     # Latency buffers, sized by the largest delay. With both ranges at [0, 0]
-    # they're skipped and step() is unchanged.
+    # delays are zero, but the substeps still run one at a time for the filter.
     latency = self._config.latency_config
     self._max_action_delay = int(latency.action_delay_range[1])
     self._max_imu_delay = int(latency.imu_delay_range[1])
     # Control steps of past targets needed to cover the largest action delay.
     self._target_history_len = -(-self._max_action_delay // self.n_substeps) + 1
 
-  def _imu_reading(self, data: mjx.Data) -> jax.Array:
-    """The noiseless [gyro, gravity] the observation uses."""
-    gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
-    return jp.concatenate([self.get_gyro(data), gravity])
+    # IMU filter: the same time constant as the robot's, at the sim_dt rate.
+    tau = self._config.imu_filter_tau
+    self._filter_alpha = tau / (tau + self._config.sim_dt)
+
+  def _true_gravity(self, data: mjx.Data) -> jax.Array:
+    """Unit gravity in the IMU frame, [0, 0, -1] upright."""
+    return data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
+
+  def _filter_start(self, data: mjx.Data) -> jax.Array:
+    """[roll, pitch] of the true tilt: the robot's filter has settled before it starts."""
+    g = self._true_gravity(data)
+    return jp.array([jp.arctan2(-g[1], -g[2]), jp.arcsin(jp.clip(g[0], -1.0, 1.0))])
+
+  def _filter_update(self, roll_pitch: jax.Array, data: mjx.Data) -> jax.Array:
+    """One step of control/filter.py's ComplementaryFilter, dt = sim_dt."""
+    ax, ay, az = self.get_accelerometer(data)
+    gx, gy, _ = self.get_gyro(data)
+    accel = jp.array([jp.arctan2(ay, az), jp.arctan2(-ax, jp.hypot(ay, az))])
+    gyro = jp.array([gx, gy])
+    a = self._filter_alpha
+    return a * (roll_pitch + gyro * self._config.sim_dt) + (1 - a) * accel
+
+  @staticmethod
+  def _filter_gravity(roll_pitch: jax.Array) -> jax.Array:
+    """ComplementaryFilter.gravity: unit gravity in the IMU frame."""
+    roll, pitch = roll_pitch
+    return jp.array([
+        jp.sin(pitch),
+        -jp.sin(roll) * jp.cos(pitch),
+        -jp.cos(roll) * jp.cos(pitch),
+    ])
+
+  def _imu_reading(self, data: mjx.Data, roll_pitch: jax.Array) -> jax.Array:
+    """The noiseless [gyro, filter gravity] the observation uses."""
+    return jp.concatenate([self.get_gyro(data), self._filter_gravity(roll_pitch)])
 
   def _physics_step(self, data, info, motor_targets):
     """Runs one control step of physics, applying the action and IMU delays.
@@ -203,12 +243,9 @@ class GnociV2Joystick(GnociV2Env):
     Substep j of this control step uses the target from
     ceil((action_delay - j) / n_substeps) steps ago, so a new target takes
     effect action_delay substeps after the observation it came from.
-    info["imu_history"][k] is the IMU reading from k substeps ago.
+    info["imu_history"][k] is the IMU reading from k substeps ago, and
+    info["imu_filter"] the filter's [roll, pitch], updated every substep.
     """
-    if self._max_action_delay == 0 and self._max_imu_delay == 0:
-      data = mjx_env.step(self.mjx_model, data, motor_targets, self.n_substeps)
-      return data, info
-
     history = jp.concatenate(
         [motor_targets[None], info["target_history"][:-1]]
     )
@@ -218,19 +255,20 @@ class GnociV2Joystick(GnociV2Env):
     targets = history[lags]
 
     def substep(carry, target):
-      data, imu_history = carry
+      data, imu_history, roll_pitch = carry
       data = mjx.step(self.mjx_model, data.replace(ctrl=target))
-      if self._max_imu_delay > 0:
-        imu_history = jp.concatenate(
-            [self._imu_reading(data)[None], imu_history[:-1]]
-        )
-      return (data, imu_history), None
+      roll_pitch = self._filter_update(roll_pitch, data)
+      imu_history = jp.concatenate(
+          [self._imu_reading(data, roll_pitch)[None], imu_history[:-1]]
+      )
+      return (data, imu_history, roll_pitch), None
 
-    (data, imu_history), _ = jax.lax.scan(
-        substep, (data, info["imu_history"]), targets
+    (data, imu_history, roll_pitch), _ = jax.lax.scan(
+        substep, (data, info["imu_history"], info["imu_filter"]), targets
     )
     info["target_history"] = history
     info["imu_history"] = imu_history
+    info["imu_filter"] = roll_pitch
     return data, info
 
   def reset(self, rng: jax.Array) -> mjx_env.State:
@@ -323,8 +361,9 @@ class GnociV2Joystick(GnociV2Env):
         imu_key, (), latency.imu_delay_range[0], latency.imu_delay_range[1] + 1
     )
     info["target_history"] = jp.tile(data.ctrl, (self._target_history_len, 1))
+    info["imu_filter"] = self._filter_start(data)
     info["imu_history"] = jp.tile(
-        self._imu_reading(data), (self._max_imu_delay + 1, 1)
+        self._imu_reading(data, info["imu_filter"]), (self._max_imu_delay + 1, 1)
     )
 
     metrics = {}
@@ -441,12 +480,9 @@ class GnociV2Joystick(GnociV2Env):
     """last_act: the action the obs reports as the last one. Default info["last_act"]."""
     if last_act is None:
       last_act = info["last_act"]
-    if self._max_imu_delay > 0:
-      imu = info["imu_history"][info["imu_delay"]]
-      gyro, gravity = imu[:3], imu[3:]
-    else:
-      gyro = self.get_gyro(data)
-      gravity = data.site_xmat[self._site_id].T @ jp.array([0, 0, -1])
+    true_gravity = self._true_gravity(data)
+    imu = info["imu_history"][info["imu_delay"]]
+    gyro, gravity = imu[:3], imu[3:]
     info["rng"], noise_rng = jax.random.split(info["rng"])
     noisy_gyro = (
         gyro
@@ -513,7 +549,7 @@ class GnociV2Joystick(GnociV2Env):
         state,
         gyro,  # 3
         accelerometer,  # 3
-        gravity,  # 3
+        true_gravity,  # 3: the critic gets the truth, not the filter's
         linvel,  # 3
         global_angvel,  # 3
         joint_angles - self._default_pose,
