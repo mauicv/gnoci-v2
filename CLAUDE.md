@@ -52,7 +52,7 @@ Each has its usage in its docstring.
 - `src/gnoci_v2/control/`: code that runs on the robot (Raspberry Pi), with no sim dependencies.
   - `main.py`: `Main`, the 50 Hz control loop. It reads the IMU in a 300 Hz thread (`imu_hwi.py`), and the joystick, servo positions and velocities, then builds the observation, runs the policy (`predict.py`, `PolicyRunner` over `models/<name>/policy.onnx`) and sends `servo_hwi.clamp(action_scale * action)` as targets. Gait frequency is fixed at 1.375 Hz, and the phase advances even at zero command, as it does in the sim.
   - `servo_hwi.py`: STS3215 servos over rustypot. It maps servo IDs, signs and hard-stop limits to the sim's joint order and sign convention.
-  - `record.py`: `Recorder`, behind `gnoci run --record`. It writes each step's `t`, `obs`, `action` and `target` to an `.npz`, in the same format that `hang_rollout_sim.py` writes.
+  - `record.py`: `Recorder`, behind `gnoci run --record`. It writes each step's `t`, `obs`, `action`, `target`, the filter's `gravity` and the `accel` to an `.npz`, in the same format that `hang_rollout_sim.py` writes.
 - `src/gnoci_v2/cli/`: the `gnoci` click CLI (`run`, hardware tests, `measure-imu-offsets`).
 - `src/gnoci_v2/networking/`: `Channel` (on the robot) and `Client` (on the laptop) stream JSON observations over TCP.
 

@@ -52,14 +52,16 @@ class Main:
         self.fall_tilt = fall_tilt
         # The filter's gravity at the latest observation.
         self.gravity = None
-        # (gyro, gravity, perf_counter time of the reading), or None before the first.
+        # The accelerometer (g, offsets removed) at the latest observation.
+        self.accel = None
+        # (gyro, accel, gravity, perf_counter time of the reading), or None before the first.
         self.imu_data = None
         self.imu_hwi = IMUHWI(dt=0.00333333)
 
         def read_imu():
-            gyro, gravity = self.imu_hwi.read()
+            gyro, accel, gravity = self.imu_hwi.read_full()
             # One assignment, so the main thread never sees a half-updated reading.
-            self.imu_data = (gyro, gravity, time.perf_counter())
+            self.imu_data = (gyro, accel, gravity, time.perf_counter())
 
         self.imu_loop = Loop(
             func=read_imu,
@@ -78,16 +80,16 @@ class Main:
         self.ready = True
 
     def get_imu(self):
-        """Returns the latest (gyro, gravity). Raises if the IMU thread has stopped."""
+        """Returns the latest (gyro, accel, gravity). Raises if the IMU thread has stopped."""
         if self.imu_loop.failed:
             raise RuntimeError("The IMU loop failed, see the traceback above")
         if self.imu_data is None:
             raise RuntimeError("No IMU reading yet")
-        gyro, gravity, timestamp = self.imu_data
+        gyro, accel, gravity, timestamp = self.imu_data
         age = time.perf_counter() - timestamp
         if age > IMU_MAX_AGE:
             raise RuntimeError(f"IMU reading is stale ({age * 1000:.0f} ms old)")
-        return gyro, gravity
+        return gyro, accel, gravity
 
     def reset_phase(self):
         """Starts the gait cycle as training did: [left, right], half a cycle apart."""
@@ -105,7 +107,7 @@ class Main:
         return phase_obs
 
     def get_observation(self):
-        gyro, self.gravity = self.get_imu()
+        gyro, self.accel, self.gravity = self.get_imu()
         joystick_data = self.joystick_hwi.read()
         joint_pos = self.servo_hwi.get_positions()
         joint_vel = self.servo_hwi.get_velocities()
@@ -153,7 +155,7 @@ class Main:
             if self.close_loop:
                 self.servo_hwi.set_positions(target)
             if recorder is not None:
-                recorder.add(start_time, observation, action, target, self.gravity)
+                recorder.add(start_time, observation, action, target, self.gravity, self.accel)
 
             if self.fall_tilt:
                 tilted_steps = tilted_steps + 1 if self.tilt() > self.fall_tilt else 0

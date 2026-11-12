@@ -90,10 +90,19 @@ class IMUHWI:
 
         Call this once per control step, since each call advances the filter by dt.
         """
+        gyro, _, gravity = self.read_full()
+        return gyro, gravity
+
+    def read_full(self):
+        """As read, but returns (gyro in rad/s, accel in g, unit gravity vector).
+
+        gyro and accel have the offsets removed: they're what the filter gets.
+        """
         gyro, accel = self.read_raw()
         gyro = gyro - self.gyro_offset
-        self.filter.update(accel - self.accel_offset, gyro)
-        return gyro, self.filter.gravity
+        accel = accel - self.accel_offset
+        self.filter.update(accel, gyro)
+        return gyro, accel, self.filter.gravity
 
     def measure_offsets(self, samples=500, sample_dt=0.005):
         """Averages readings with the robot still and level, then saves the offsets."""
