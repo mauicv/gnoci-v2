@@ -20,3 +20,5 @@ logs/
 
 checkpoints/
 code_ref
+# Local gait / sim2real analysis scripts
+gait_analysis/
