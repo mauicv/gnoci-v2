@@ -1,0 +1,311 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://cad.onshape.com/documents/bce225ed3a45ad55857f5071/w/70fcb8befde3eeb938f15150/e/1aa2e32dc4a36153214ccc4d -->
+<mujoco model="onshape-to-robot">
+  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+  <default>
+    <default class="onshape-to-robot">
+      <joint frictionloss="0.1" armature="0.005"/>
+      <position kp="50" dampratio="1"/>
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom group="3"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <!-- Link body_main -->
+    <body name="body_main" pos="0 0 0" quat="1 0 0 0" childclass="onshape-to-robot">
+      <inertial pos="0.0151711 -0.0587223 0.138402" mass="0.0899853" fullinertia="4.34317e-05 5.99594e-05 8.30539e-05 6.28128e-06 -2.4771e-07 4.97336e-06"/>
+      <!-- Part imu -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="imu" material="imu_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="imu" material="imu_material"/>
+      <!-- Part head_fan -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.047399" quat="1 0 -0 0" mesh="head_fan" material="head_fan_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.047399" quat="1 0 -0 0" mesh="head_fan" material="head_fan_material"/>
+      <!-- Part head_powerboard -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0476935" quat="1 0 -0 0" mesh="head_powerboard" material="head_powerboard_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0476935" quat="1 0 -0 0" mesh="head_powerboard" material="head_powerboard_material"/>
+      <!-- Part body_top -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_top" material="body_top_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_top" material="body_top_material"/>
+      <!-- Part body_battery_lid -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_battery_lid" material="body_battery_lid_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_battery_lid" material="body_battery_lid_material"/>
+      <!-- Part head_button -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053813 0.0495935" quat="1 0 -0 0" mesh="head_button" material="head_button_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053813 0.0495935" quat="1 0 -0 0" mesh="head_button" material="head_button_material"/>
+      <!-- Part urt_2_controller -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0478098" quat="1 0 -0 0" mesh="urt_2_controller" material="urt_2_controller_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0478098" quat="1 0 -0 0" mesh="urt_2_controller" material="urt_2_controller_material"/>
+      <!-- Part head_voltmeter -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0475735" quat="1 0 -0 0" mesh="head_voltmeter" material="head_voltmeter_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0475735" quat="1 0 -0 0" mesh="head_voltmeter" material="head_voltmeter_material"/>
+      <!-- Part right_serv_1 -->
+      <geom type="mesh" class="visual" pos="0.0311617 -0.0534168 0.0478935" quat="1 0 -0 0" mesh="right_serv_1" material="right_serv_1_material"/>
+      <geom type="mesh" class="collision" pos="0.0311617 -0.0534168 0.0478935" quat="1 0 -0 0" mesh="right_serv_1" material="right_serv_1_material"/>
+      <!-- Part mounting_1 -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="mounting_1" material="mounting_1_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="mounting_1" material="mounting_1_material"/>
+      <!-- Part mounting_2 -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="mounting_2" material="mounting_2_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="mounting_2" material="mounting_2_material"/>
+      <!-- Part left_serv_1 -->
+      <geom type="mesh" class="visual" pos="0.0311617 -0.0538092 0.0478935" quat="1 0 -0 0" mesh="left_serv_1" material="left_serv_1_material"/>
+      <geom type="mesh" class="collision" pos="0.0311617 -0.0538092 0.0478935" quat="1 0 -0 0" mesh="left_serv_1" material="left_serv_1_material"/>
+      <!-- Part body_main -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_main" material="body_main_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0474935" quat="1 0 -0 0" mesh="body_main" material="body_main_material"/>
+      <!-- Part head_r_pi -->
+      <geom type="mesh" class="visual" pos="0.030943 -0.053613 0.0495935" quat="1 0 -0 0" mesh="head_r_pi" material="head_r_pi_material"/>
+      <geom type="mesh" class="collision" pos="0.030943 -0.053613 0.0495935" quat="1 0 -0 0" mesh="head_r_pi" material="head_r_pi_material"/>
+      <!-- Link right_serv_1_horn -->
+      <body name="right_serv_1_horn" pos="0.0425617 -0.0774168 0.0353935" quat="0.5 -0.5 -0.5 0.5">
+        <!-- Joint from body_main to right_serv_1_horn -->
+        <joint axis="0 0 1" name="right_hip_lat" type="hinge"/>
+        <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+        <!-- Part right_serv_1_horn_back -->
+        <geom type="mesh" class="visual" pos="0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn_back" material="right_serv_1_horn_back_material"/>
+        <geom type="mesh" class="collision" pos="0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn_back" material="right_serv_1_horn_back_material"/>
+        <!-- Part right_hip -->
+        <geom type="mesh" class="visual" pos="0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="right_hip" material="right_hip_material"/>
+        <geom type="mesh" class="collision" pos="0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="right_hip" material="right_hip_material"/>
+        <!-- Part right_serv_2 -->
+        <geom type="mesh" class="visual" pos="0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_2" material="right_serv_2_material"/>
+        <geom type="mesh" class="collision" pos="0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_2" material="right_serv_2_material"/>
+        <!-- Part right_serv_1_horn -->
+        <geom type="mesh" class="visual" pos="0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn" material="right_serv_1_horn_material"/>
+        <geom type="mesh" class="collision" pos="0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn" material="right_serv_1_horn_material"/>
+        <!-- Link right_serv_2_horn -->
+        <body name="right_serv_2_horn" pos="-0.062788 -0.000195368 0.0321" quat="0.664463 0.241845 0.664463 0.241845">
+          <!-- Joint from right_serv_1_horn to right_serv_2_horn -->
+          <joint axis="0 0 1" name="right_hip" type="hinge"/>
+          <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+          <!-- Part right_upper_leg -->
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_upper_leg" material="right_upper_leg_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_upper_leg" material="right_upper_leg_material"/>
+          <!-- Part right_serv_2_horn_back -->
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0866" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn_back" material="right_serv_2_horn_back_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 -0.0125 0.0866" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn_back" material="right_serv_2_horn_back_material"/>
+          <!-- Part right_serv_2_horn -->
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn" material="right_serv_2_horn_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn" material="right_serv_2_horn_material"/>
+          <!-- Part right_serv_3 -->
+          <geom type="mesh" class="visual" pos="0.0207 -0.0125 0.086018" quat="0.707107 0.707107 -0 0" mesh="right_serv_3" material="right_serv_3_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 -0.0125 0.086018" quat="0.707107 0.707107 -0 0" mesh="right_serv_3" material="right_serv_3_material"/>
+          <!-- Link right_serv_3_horn -->
+          <body name="right_serv_3_horn" pos="-0 0.1 -0.000382036" quat="0.866025 -0 0 -0.5">
+            <!-- Joint from right_serv_2_horn to right_serv_3_horn -->
+            <joint axis="0 0 1" name="right_knee" type="hinge"/>
+            <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+            <!-- Part right_foot_limit_switch_1 -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0862" quat="0.707107 0.707107 -0 0" mesh="right_foot_limit_switch_1" material="right_foot_limit_switch_1_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0862" quat="0.707107 0.707107 -0 0" mesh="right_foot_limit_switch_1" material="right_foot_limit_switch_1_material"/>
+            <!-- Part right_serv_3_horn -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_3_horn" material="right_serv_3_horn_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_3_horn" material="right_serv_3_horn_material"/>
+            <!-- Part right_foot_base -->
+            <geom type="mesh" class="visual" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 -0 -0" mesh="right_foot_base" material="right_foot_base_material"/>
+            <geom type="mesh" class="collision" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 -0 -0" mesh="right_foot_base" material="right_foot_base_material"/>
+            <!-- Part right_foot_right_side -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_right_side" material="right_foot_right_side_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_right_side" material="right_foot_right_side_material"/>
+            <!-- Part right_foot_tpu_layer -->
+            <geom type="mesh" class="visual" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 0 -0" mesh="right_foot_tpu_layer" material="right_foot_tpu_layer_material"/>
+            <geom type="mesh" class="collision" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 0 -0" mesh="right_foot_tpu_layer" material="right_foot_tpu_layer_material"/>
+            <!-- Part right_serv_3_horn_back -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0866" quat="0.707107 0.707107 0 0" mesh="right_serv_3_horn_back" material="right_serv_3_horn_back_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0866" quat="0.707107 0.707107 0 0" mesh="right_serv_3_horn_back" material="right_serv_3_horn_back_material"/>
+            <!-- Part right_lower_leg -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_lower_leg" material="right_lower_leg_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_lower_leg" material="right_lower_leg_material"/>
+            <!-- Part right_foot_left_side -->
+            <geom type="mesh" class="visual" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_left_side" material="right_foot_left_side_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_left_side" material="right_foot_left_side_material"/>
+          </body>
+        </body>
+      </body>
+      <!-- Link left_hip -->
+      <body name="left_hip" pos="0.0425617 -0.0298092 0.0353935" quat="0.5 -0.5 -0.5 0.5">
+        <!-- Joint from body_main to left_hip -->
+        <joint axis="0 0 1" name="left_hip_lat" type="hinge"/>
+        <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+        <!-- Part left_hip -->
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="left_hip" material="left_hip_material"/>
+        <geom type="mesh" class="collision" pos="-0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="left_hip" material="left_hip_material"/>
+        <!-- Part left_serv_2 -->
+        <geom type="mesh" class="visual" pos="-0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_2" material="left_serv_2_material"/>
+        <geom type="mesh" class="collision" pos="-0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_2" material="left_serv_2_material"/>
+        <!-- Part left_serv_1_horn_back -->
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn_back" material="left_serv_1_horn_back_material"/>
+        <geom type="mesh" class="collision" pos="-0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn_back" material="left_serv_1_horn_back_material"/>
+        <!-- Part left_serv_1_horn -->
+        <geom type="mesh" class="visual" pos="-0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn" material="left_serv_1_horn_material"/>
+        <geom type="mesh" class="collision" pos="-0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn" material="left_serv_1_horn_material"/>
+        <!-- Link left_upper_leg -->
+        <body name="left_upper_leg" pos="0.062788 -0.000195368 0.0321" quat="0.241845 -0.664463 -0.241845 0.664463">
+          <!-- Joint from left_hip to left_upper_leg -->
+          <joint axis="0 0 1" name="left_hip" type="hinge"/>
+          <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+          <!-- Part left_serv_2_horn_back -->
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn_back" material="left_serv_2_horn_back_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 0.0125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn_back" material="left_serv_2_horn_back_material"/>
+          <!-- Part left_upper_leg -->
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 0" mesh="left_upper_leg" material="left_upper_leg_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 0" mesh="left_upper_leg" material="left_upper_leg_material"/>
+          <!-- Part left_serv_3 -->
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.086018" quat="0.707107 -0.707107 0 0" mesh="left_serv_3" material="left_serv_3_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 0.0125 0.086018" quat="0.707107 -0.707107 0 0" mesh="left_serv_3" material="left_serv_3_material"/>
+          <!-- Part left_serv_2_horn -->
+          <geom type="mesh" class="visual" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 -0" mesh="left_serv_2_horn" material="left_serv_2_horn_material"/>
+          <geom type="mesh" class="collision" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 -0" mesh="left_serv_2_horn" material="left_serv_2_horn_material"/>
+          <!-- Link left_lower_leg -->
+          <body name="left_lower_leg" pos="-0 -0.1 -0.000382036" quat="0.866025 0 0 0.5">
+            <!-- Joint from left_upper_leg to left_lower_leg -->
+            <joint axis="0 0 1" name="left_knee" type="hinge"/>
+            <inertial pos="0 0 0" mass="1e-09" fullinertia="1e-09 1e-09 1e-09 0 0 0"/>
+            <!-- Part left_serv_3_horn -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn" material="left_serv_3_horn_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn" material="left_serv_3_horn_material"/>
+            <!-- Part left_foot_base -->
+            <geom type="mesh" class="visual" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 -0 0" mesh="left_foot_base" material="left_foot_base_material"/>
+            <geom type="mesh" class="collision" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 -0 0" mesh="left_foot_base" material="left_foot_base_material"/>
+            <!-- Part left_foot_limit_switch_1 -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0862" quat="0.707107 -0.707107 0 -0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0862" quat="0.707107 -0.707107 0 -0" mesh="left_foot_limit_switch_1" material="left_foot_limit_switch_1_material"/>
+            <!-- Part left_foot_tpu_layer -->
+            <geom type="mesh" class="visual" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 0 0" mesh="left_foot_tpu_layer" material="left_foot_tpu_layer_material"/>
+            <geom type="mesh" class="collision" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 0 0" mesh="left_foot_tpu_layer" material="left_foot_tpu_layer_material"/>
+            <!-- Part left_foot_right_side -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_right_side" material="left_foot_right_side_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_right_side" material="left_foot_right_side_material"/>
+            <!-- Part left_serv_3_horn_back -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn_back" material="left_serv_3_horn_back_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn_back" material="left_serv_3_horn_back_material"/>
+            <!-- Part left_foot_left_side -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_left_side" material="left_foot_left_side_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_left_side" material="left_foot_left_side_material"/>
+            <!-- Part left_lower_leg -->
+            <geom type="mesh" class="visual" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_lower_leg" material="left_lower_leg_material"/>
+            <geom type="mesh" class="collision" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_lower_leg" material="left_lower_leg_material"/>
+          </body>
+        </body>
+      </body>
+    </body>
+    <!-- Link head_battery -->
+    <body name="head_battery" pos="0 0 0" quat="1 0 0 0" childclass="onshape-to-robot">
+      <freejoint name="head_battery_freejoint"/>
+      <inertial pos="-0.00755705 -0.053593 0.0833435" mass="0.088984" fullinertia="4.97291e-05 1.13547e-05 5.65419e-05 0 -0 -0"/>
+      <!-- Part head_battery -->
+      <geom type="mesh" class="visual" pos="0.0329623 -0.0536094 0.0483935" quat="1 0 -0 0" mesh="head_battery" material="head_battery_material"/>
+      <geom type="mesh" class="collision" pos="0.0329623 -0.0536094 0.0483935" quat="1 0 -0 0" mesh="head_battery" material="head_battery_material"/>
+    </body>
+  </worldbody>
+  <asset>
+    <mesh file="right_serv_3.stl"/>
+    <mesh file="head_button.stl"/>
+    <mesh file="left_foot_limit_switch_1.stl"/>
+    <mesh file="urt_2_controller.stl"/>
+    <mesh file="right_serv_3_horn.stl"/>
+    <mesh file="right_foot_base.stl"/>
+    <mesh file="left_serv_2.stl"/>
+    <mesh file="left_upper_leg.stl"/>
+    <mesh file="right_lower_leg.stl"/>
+    <mesh file="body_main.stl"/>
+    <mesh file="left_serv_2_horn_back.stl"/>
+    <mesh file="mounting_2.stl"/>
+    <mesh file="imu.stl"/>
+    <mesh file="left_hip.stl"/>
+    <mesh file="mounting_1.stl"/>
+    <mesh file="right_hip.stl"/>
+    <mesh file="left_foot_tpu_layer.stl"/>
+    <mesh file="left_serv_1.stl"/>
+    <mesh file="right_foot_limit_switch_1.stl"/>
+    <mesh file="left_foot_left_side.stl"/>
+    <mesh file="right_serv_1.stl"/>
+    <mesh file="left_serv_1_horn.stl"/>
+    <mesh file="body_top.stl"/>
+    <mesh file="right_foot_tpu_layer.stl"/>
+    <mesh file="left_serv_1_horn_back.stl"/>
+    <mesh file="right_serv_3_horn_back.stl"/>
+    <mesh file="left_serv_3_horn_back.stl"/>
+    <mesh file="right_serv_2_horn_back.stl"/>
+    <mesh file="head_battery.stl"/>
+    <mesh file="left_lower_leg.stl"/>
+    <mesh file="left_serv_2_horn.stl"/>
+    <mesh file="left_foot_base.stl"/>
+    <mesh file="left_foot_right_side.stl"/>
+    <mesh file="body_battery_lid.stl"/>
+    <mesh file="head_fan.stl"/>
+    <mesh file="right_foot_left_side.stl"/>
+    <mesh file="right_serv_2.stl"/>
+    <mesh file="left_serv_3.stl"/>
+    <mesh file="head_voltmeter.stl"/>
+    <mesh file="right_serv_1_horn.stl"/>
+    <mesh file="right_foot_right_side.stl"/>
+    <mesh file="left_serv_3_horn.stl"/>
+    <mesh file="right_upper_leg.stl"/>
+    <mesh file="right_serv_2_horn.stl"/>
+    <mesh file="right_serv_1_horn_back.stl"/>
+    <mesh file="head_powerboard.stl"/>
+    <mesh file="head_r_pi.stl"/>
+    <material name="imu_material" rgba="0.917647 0.917647 0.917647 1"/>
+    <material name="head_fan_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="head_powerboard_material" rgba="0.513725 0.737255 0.407843 1"/>
+    <material name="body_top_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="body_battery_lid_material" rgba="0.498039 0.498039 0.498039 1"/>
+    <material name="head_button_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="urt_2_controller_material" rgba="0.231373 0.380392 0.705882 1"/>
+    <material name="head_voltmeter_material" rgba="0.513725 0.737255 0.407843 1"/>
+    <material name="right_serv_1_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="mounting_1_material" rgba="0.917647 0.917647 0.917647 1"/>
+    <material name="mounting_2_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="left_serv_1_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="body_main_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="head_r_pi_material" rgba="0.513725 0.737255 0.407843 1"/>
+    <material name="right_serv_1_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_hip_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="right_serv_2_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="right_serv_1_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_upper_leg_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="right_serv_2_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_serv_2_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_serv_3_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="right_foot_limit_switch_1_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="right_serv_3_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_foot_base_material" rgba="0.647059 0.647059 0.647059 1"/>
+    <material name="right_foot_right_side_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="right_foot_tpu_layer_material" rgba="0.231373 0.380392 0.705882 1"/>
+    <material name="right_serv_3_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="right_lower_leg_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="right_foot_left_side_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="left_hip_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="left_serv_2_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="left_serv_1_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_serv_1_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_serv_2_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_upper_leg_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="left_serv_3_material" rgba="0.247059 0.247059 0.247059 1"/>
+    <material name="left_serv_2_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_serv_3_horn_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_foot_base_material" rgba="0.647059 0.647059 0.647059 1"/>
+    <material name="left_foot_limit_switch_1_material" rgba="0.768627 0.886275 0.952941 1"/>
+    <material name="left_foot_tpu_layer_material" rgba="0.231373 0.380392 0.705882 1"/>
+    <material name="left_foot_right_side_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="left_serv_3_horn_back_material" rgba="0.960784 0.960784 0.964706 1"/>
+    <material name="left_foot_left_side_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="left_lower_leg_material" rgba="0.615686 0.811765 0.929412 1"/>
+    <material name="head_battery_material" rgba="0.87451 0.447059 0.317647 1"/>
+  </asset>
+  <actuator>
+    <position class="onshape-to-robot" name="right_hip_lat" joint="right_hip_lat"/>
+    <position class="onshape-to-robot" name="right_hip" joint="right_hip"/>
+    <position class="onshape-to-robot" name="right_knee" joint="right_knee"/>
+    <position class="onshape-to-robot" name="left_hip_lat" joint="left_hip_lat"/>
+    <position class="onshape-to-robot" name="left_hip" joint="left_hip"/>
+    <position class="onshape-to-robot" name="left_knee" joint="left_knee"/>
+  </actuator>
+  <equality/>
+</mujoco>
