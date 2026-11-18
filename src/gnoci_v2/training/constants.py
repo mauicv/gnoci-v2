@@ -28,13 +28,12 @@ FEET_SITES = [
     "r_foot",
 ]
 
-LEFT_FEET_GEOMS = [
-    "left_foot_base",
-]
+# Each sole is four spheres (see scripts/import_onshape.py).
+SOLE_SPHERES = ["heel_right", "heel_left", "toe_right", "toe_left"]
 
-RIGHT_FEET_GEOMS = [
-    "right_foot_base",
-]
+LEFT_FEET_GEOMS = [f"left_sole_{s}" for s in SOLE_SPHERES]
+
+RIGHT_FEET_GEOMS = [f"right_sole_{s}" for s in SOLE_SPHERES]
 
 FEET_GEOMS = LEFT_FEET_GEOMS + RIGHT_FEET_GEOMS
 

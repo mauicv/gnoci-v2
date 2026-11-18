@@ -113,7 +113,7 @@ def main() -> None:
   parser.add_argument("--port", type=int, default=5000)
   parser.add_argument(
       "--height", type=float, default=0.35,
-      help="Torso height in metres. Home (feet on the floor) is 0.2723.",
+      help="Torso height in metres. Home (feet on the floor) is 0.206.",
   )
   args = parser.parse_args()
 

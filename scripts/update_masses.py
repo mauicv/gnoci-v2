@@ -18,9 +18,16 @@ GEOM_MASS = re.compile(r'(<geom\b[^>]*\bmesh="([^"]+)"[^>]*\bmass=")[^"]*(")')
 
 
 def part_name(mesh: str) -> str:
+  # Each foot has an outer and an inner side part: left_foot_left_side is the left
+  # foot's outer side, right_foot_left_side the right foot's inner side.
+  side = re.match(r"^(left|right)_foot_(left|right)_side$", mesh)
+  if side:
+    return "foot_outer_side" if side[1] == side[2] else "foot_inner_side"
   name = re.sub(r"^(left|right)_", "", mesh)
   name = re.sub(r"^serv_\d+", "serv", name)
-  return re.sub(r"_\d+$", "", name)
+  # Drop a copy number (foot_limit_switch_1), unless MASSES lists the numbered
+  # name as a part of its own (mounting_1).
+  return name if name in masses.MASSES else re.sub(r"_\d+$", "", name)
 
 
 def main() -> None:

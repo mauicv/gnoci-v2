@@ -23,7 +23,7 @@ def default_config() -> config_dict.ConfigDict:
       history_len=1,
       soft_joint_pos_limit_factor=0.95,
       min_upright=0.5,  # cos(60 deg): terminate when tilted further.
-      min_base_height=0.15,  # m; home is 0.2723.
+      min_base_height=0.15,  # m; home is 0.206.
       noise_config=config_dict.create(
           level=1.0,  # Set to 0.0 to disable noise.
           scales=config_dict.create(
@@ -178,10 +178,13 @@ class GnociV2Joystick(GnociV2Env):
     self._qpos_noise_scale = jp.array(qpos_noise_scale)
 
     # Contact sensor IDs.
-    self._feet_floor_found_sensor = [
-        self._mj_model.sensor(f"{geom}_floor_found").id
-        for geom in consts.FEET_GEOMS
-    ]
+    # Sensordata index of each sole sphere's floor contact sensor, shape (2 feet, 4).
+    # MJX only supports geom-to-geom contact sensors, so there's one per sphere.
+    self._feet_floor_found_adr = np.array([
+        [self._mj_model.sensor_adr[self._mj_model.sensor(f"{geom}_floor_found").id]
+         for geom in geoms]
+        for geoms in (consts.LEFT_FEET_GEOMS, consts.RIGHT_FEET_GEOMS)
+    ])
 
     # Latency buffers, sized by the largest delay. With both ranges at [0, 0]
     # they're skipped and step() is unchanged.
@@ -332,10 +335,7 @@ class GnociV2Joystick(GnociV2Env):
       metrics[f"reward/{k}"] = jp.zeros(())
     metrics["swing_peak"] = jp.zeros(())
 
-    contact = jp.array([
-        data.sensordata[self._mj_model.sensor_adr[sensor_id]] > 0
-        for sensor_id in self._feet_floor_found_sensor
-    ])
+    contact = jp.any(data.sensordata[self._feet_floor_found_adr] > 0, axis=-1)
 
     obs = self._get_obs(data, info, contact)
     reward, done = jp.zeros(2)
@@ -367,10 +367,7 @@ class GnociV2Joystick(GnociV2Env):
     state = state.replace(info=info)  # pyrefly: ignore[missing-attribute]
     state.info["motor_targets"] = motor_targets
 
-    contact = jp.array([
-        data.sensordata[self._mj_model.sensor_adr[sensor_id]] > 0
-        for sensor_id in self._feet_floor_found_sensor
-    ])
+    contact = jp.any(data.sensordata[self._feet_floor_found_adr] > 0, axis=-1)
     contact_filt = contact | state.info["last_contact"]
     first_contact = (state.info["feet_air_time"] > 0.0) * contact_filt
     state.info["feet_air_time"] += self.dt
