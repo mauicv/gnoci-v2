@@ -47,7 +47,7 @@ def default_config() -> config_dict.ConfigDict:
               base_height=0.0,
               # Energy related rewards.
               torques=-2.5e-5,
-              action_rate=-1.0,
+              action_rate=-0.5,
               energy=0.0,
               # Feet related rewards.
               feet_clearance=0.0,
@@ -68,7 +68,7 @@ def default_config() -> config_dict.ConfigDict:
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
           max_foot_height=0.05,
-          base_height_target=0.27,
+          base_height_target=0.204,
       ),
       push_config=config_dict.create(
           enable=True,
@@ -277,9 +277,9 @@ class GnociV2Joystick(GnociV2Env):
     )
     data = mjx.forward(self.mjx_model, data)
 
-    # Phase, freq=U(1.0, 1.5)
+    # Phase, freq=U(1.65, 1.85)
     rng, key = jax.random.split(rng)
-    gait_freq = jax.random.uniform(key, (1,), minval=1.25, maxval=1.5)
+    gait_freq = jax.random.uniform(key, (1,), minval=1.65, maxval=1.85)
     phase_dt = 2 * jp.pi * self.dt * gait_freq
     phase = jp.array([0, jp.pi])
 
