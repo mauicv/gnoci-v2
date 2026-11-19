@@ -18,9 +18,11 @@ What it does to the export:
   every hip and knee about world +y.
 - Collision meshes and <inertial>s are dropped: inertia comes from the visual
   geoms (see the compiler's inertiagrouprange) and masses from desc/masses.py.
-- Each sole is modelled as four spheres of --sole-radius, at the corners of the flat
-  patch of the {side}_foot_tpu_layer part. With a flat patch and edges rounded at
-  that radius (spherical corners), that is the exact shape on a flat floor.
+- Each sole is modelled as four spheres at the corners of the flat patch of the
+  {side}_foot_tpu_layer part, with the radius of its rounded edges (fitted from the
+  mesh, or --sole-radius). With a flat patch and edges rounded at one radius
+  (spherical corners), that is the exact shape on a flat floor, for any tilt up to
+  where the edge arc meets the top of the part.
 - Sites: imu at the centre of the imu part, {l,r}_foot at the middle of each sole.
 
 Usage:
@@ -70,8 +72,8 @@ def main() -> None:
   parser = argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument("--export", type=pathlib.Path, default=pathlib.Path("onshape-to-robot"))
-  parser.add_argument("--sole-radius", type=float, default=0.007,
-                      help="Radius (m) of the rounded edges of the sole.")
+  parser.add_argument("--sole-radius", type=float, default=None,
+                      help="Radius (m) of the rounded edges of the sole (default: fit it from the mesh).")
   args = parser.parse_args()
 
   # Geometry from the export, at its zero pose.
@@ -83,17 +85,37 @@ def main() -> None:
   body_of_joint = {m.joint(j).name: m.body(m.jnt_bodyid[j]).name for j in range(m.njnt)}
   origin = (anchor["left_hip_lat"] + anchor["right_hip_lat"]) / 2
 
-  r = args.sole_radius
   soles = {}
+  radii = []
   for side in SIDES:
     v = mesh_world_vertices(m, d, SOLE_PART.format(side=side))
     lo, hi = v.min(0), v.max(0)
-    centres = [np.array([x, y, lo[2] + r]) for x in (lo[0] + r, hi[0] - r)
-               for y in (lo[1] + r, hi[1] - r)]
     flat = v[v[:, 2] < lo[2] + 1e-4]
-    if np.ptp(flat[:, 2]) > 1e-4 or len(flat) < 4:
+    if len(flat) < 4:
       raise SystemExit(f"The {side} sole isn't flat on the floor at the zero pose")
-    soles[side] = (lo, hi, centres)
+    # The flat patch, and the edge radius: each vertex outside the patch at distance
+    # s and height z lies on a circle of radius (s^2 + z^2) / 2z tangent to the floor.
+    fx0, fx1, fy0, fy1 = flat[:, 0].min(), flat[:, 0].max(), flat[:, 1].min(), flat[:, 1].max()
+    s = np.hypot(np.maximum(np.maximum(fx0 - v[:, 0], v[:, 0] - fx1), 0),
+                 np.maximum(np.maximum(fy0 - v[:, 1], v[:, 1] - fy1), 0))
+    z = v[:, 2] - lo[2]
+    edge = (s > 1e-4) & (z > 1e-4) & (z < hi[2] - lo[2] - 1e-4)
+    r = args.sole_radius or float(np.median((s[edge] ** 2 + z[edge] ** 2) / (2 * z[edge])))
+    radii.append(r)
+    centres = [np.array([x, y, lo[2] + r]) for x in (fx0, fx1) for y in (fy0, fy1)]
+    # Check the spheres reproduce the sole's underside: the mesh never dips below
+    # the spheres' lower surface (it would touch the floor first), and the edge
+    # vertices lie on it.
+    under = s < r
+    dip = np.max(r - np.sqrt(r ** 2 - s[under] ** 2) - z[under])
+    gap = np.abs(np.hypot(s[edge], r - z[edge]) - r)
+    print(f"{side} sole: flat patch {(fx1 - fx0) * 1000:.1f} x {(fy1 - fy0) * 1000:.1f} mm, edge radius"
+          f" {r * 1000:.1f} mm; mesh below the spheres by at most {max(dip, 0) * 1000:.2f} mm, edge"
+          f" vertices off their surface by median {np.median(gap) * 1000:.2f} mm")
+    soles[side] = (np.array([fx0, fy0, lo[2]]), np.array([fx1, fy1, lo[2]]), centres)
+  r = radii[0]
+  if abs(radii[1] - r) > 1e-4:
+    raise SystemExit(f"The soles have different edge radii: {radii}")
   sole_z = soles["left"][0][2]
   if abs(soles["right"][0][2] - sole_z) > 1e-4:
     raise SystemExit("The two soles are at different heights at the zero pose")
@@ -160,7 +182,7 @@ def main() -> None:
     for c, label in zip(centres, ("heel_right", "heel_left", "toe_right", "toe_left")):
       leg.append(ET.Element("geom", name=f"{side}_sole_{label}", type="sphere", **{"class": "foot"},
                             size=f"{r:g}", pos=fmt(to_body(d, leg_id, c))))
-    middle = np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
+    middle = (lo + hi) / 2
     leg.append(ET.Element("site", name=f"{SITE_SHORT[side]}_foot",
                           pos=fmt(to_body(d, leg_id, middle)), group="5"))
 
@@ -213,7 +235,7 @@ def main() -> None:
   print(f"Wrote {DESC / 'robot.xml'} and {len(used)} meshes")
   print(f"  hip_lat axes {np.linalg.norm(anchor['left_hip_lat'] - anchor['right_hip_lat']) * 1000:.1f} mm apart,"
         f" {home_z * 1000:.1f} mm above the soles at home")
-  print(f"  soles {(hi[0] - lo[0]) * 1000:.1f} x {(hi[1] - lo[1]) * 1000:.1f} mm, edge radius {r * 1000:g} mm")
+  print(f"  sole flat patches {(hi[0] - lo[0]) * 1000:.1f} x {(hi[1] - lo[1]) * 1000:.1f} mm, edge radius {r * 1000:.1f} mm")
   print("Now run scripts/update_masses.py")
 
 

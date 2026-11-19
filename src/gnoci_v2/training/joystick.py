@@ -23,7 +23,7 @@ def default_config() -> config_dict.ConfigDict:
       history_len=1,
       soft_joint_pos_limit_factor=0.95,
       min_upright=0.5,  # cos(60 deg): terminate when tilted further.
-      min_base_height=0.15,  # m; home is 0.206.
+      min_base_height=0.15,  # m; home is 0.203.
       noise_config=config_dict.create(
           level=1.0,  # Set to 0.0 to disable noise.
           scales=config_dict.create(
@@ -67,8 +67,8 @@ def default_config() -> config_dict.ConfigDict:
           ),
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
-          max_foot_height=0.07,
-          base_height_target=0.204,
+          max_foot_height=0.055,
+          base_height_target=0.201,  # m; settled standing height at home.
       ),
       push_config=config_dict.create(
           enable=True,
