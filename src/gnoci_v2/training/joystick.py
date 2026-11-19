@@ -6,11 +6,30 @@ import numpy as np
 
 from mujoco import mjx
 from mujoco.mjx._src import math
-from mujoco_playground._src import gait
 from mujoco_playground._src import mjx_env
 
 from gnoci_v2.training.base import GnociV2Env
 from gnoci_v2.training import constants as consts
+
+
+def get_rz(phi: jax.Array, swing_height: jax.Array, swing_fraction: float) -> jax.Array:
+  """Target foot height over the gait cycle, with a stance phase.
+
+  Playground's gait.get_rz with the swing squeezed into the first swing_fraction
+  of the cycle (x = (phi + pi) / 2pi in [0, 1)) and the foot on the floor for the
+  rest. Same Bezier rise and fall; swing_fraction=1 is gait.get_rz exactly, with
+  no stance (the foot only touches the floor at one instant per cycle). The feet
+  are pi apart, so with swing_fraction < 0.5 both are down for 1 - 2 *
+  swing_fraction of the cycle.
+  """
+  def bezier(y_start, y_end, t):
+    return y_start + (y_end - y_start) * (t**3 + 3 * (t**2 * (1 - t)))
+
+  x = (phi + jp.pi) / (2 * jp.pi)
+  s = jp.clip(x / swing_fraction, 0.0, 1.0)
+  rise = bezier(0.0, swing_height, 2 * s)
+  fall = bezier(swing_height, 0.0, 2 * s - 1)
+  return jp.where(x >= swing_fraction, 0.0, jp.where(s <= 0.5, rise, fall))
 
 
 def default_config() -> config_dict.ConfigDict:
@@ -68,6 +87,18 @@ def default_config() -> config_dict.ConfigDict:
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
           max_foot_height=0.055,
+          # Share of the gait cycle each foot is in the air in the feet_phase
+          # target (see get_rz); the rest it is meant to be on the floor. 1.0 is
+          # Playground's target, which has no stance. Each foot is down for 60%
+          # of the cycle and both for 20%. ODM's reference gait has each foot
+          # down 70%.
+          swing_fraction=0.4,
+          # feet_phase scores only the swinging foot, as exp(-err^2 / sigma) with
+          # err its height error (m), and nothing in stance. A target with a
+          # stance phase otherwise pays for standing still: scoring both feet over
+          # the whole cycle, never lifting earns 61%. Here never lifting earns 34%,
+          # holding both feet at half height 42%, and 80% of the lift 87%.
+          feet_phase_sigma=0.0003,
           base_height_target=0.201,  # m; settled standing height at home.
       ),
       push_config=config_dict.create(
@@ -733,17 +764,15 @@ class GnociV2Joystick(GnociV2Env):
       foot_height: jax.Array,
       commands: jax.Array,
   ) -> jax.Array:
-    # Reward for tracking the desired foot height.
+    # Reward for tracking the desired foot height while each foot swings.
     del commands  # Unused.
-    foot_pos = data.site_xpos[self._feet_site_id]
-    foot_z = foot_pos[..., -1]
-    rz = gait.get_rz(phase, swing_height=foot_height)
-    error = jp.sum(jp.square(foot_z - rz))
-    reward = jp.exp(-error / 0.001)
-    # TODO(kevin): Ensure no movement at 0 command.
-    # cmd_norm = jp.linalg.norm(commands)
-    # reward *= cmd_norm > 0.1  # No reward for zero commands.
-    return reward
+    rc = self._config.reward_config
+    foot_z = data.site_xpos[self._feet_site_id][..., -1]
+    rz = get_rz(phase, foot_height, rc.swing_fraction)
+    swinging = (phase + jp.pi) / (2 * jp.pi) < rc.swing_fraction
+    per_foot = jp.exp(-jp.square(foot_z - rz) / rc.feet_phase_sigma)
+    # Normalised so following the target earns 1 on average over the cycle.
+    return jp.sum(swinging * per_foot) / (2 * rc.swing_fraction)
 
   def sample_command(self, rng: jax.Array) -> jax.Array:
     rng1, rng2, rng3, rng4 = jax.random.split(rng, 4)
