@@ -86,13 +86,13 @@ def default_config() -> config_dict.ConfigDict:
           ),
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
-          max_foot_height=0.055,
+          max_foot_height=0.050,
           # Share of the gait cycle each foot is in the air in the feet_phase
           # target (see get_rz); the rest it is meant to be on the floor. 1.0 is
           # Playground's target, which has no stance. Each foot is down for 60%
           # of the cycle and both for 20%. ODM's reference gait has each foot
           # down 70%.
-          swing_fraction=0.4,
+          swing_fraction=0.75,
           # feet_phase scores only the swinging foot, as exp(-err^2 / sigma) with
           # err its height error (m), and nothing in stance. A target with a
           # stance phase otherwise pays for standing still: scoring both feet over
