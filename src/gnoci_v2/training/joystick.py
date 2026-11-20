@@ -53,8 +53,9 @@ def default_config() -> config_dict.ConfigDict:
               feet_clearance=0.0,
               feet_air_time=2.0,
               feet_slip=-0.25,
-              feet_height=0.0,
-              feet_phase=1.0,
+              feet_height=-5.0,
+              feet_phase=0.0,
+              feet_contact=1.0,
               # Other rewards.
               stand_still=0.0,
               alive=0.0,
@@ -68,6 +69,13 @@ def default_config() -> config_dict.ConfigDict:
           tracking_sigma=0.025,  # (m/s)^2, for lin_vel_x/y commands of up to ~0.3 m/s.
           ang_tracking_sigma=0.25,  # (rad/s)^2, for ang_vel_yaw commands of up to 1 rad/s.
           max_foot_height=0.055,
+          # Share of the gait cycle each foot should be on the floor, for
+          # feet_contact. Stance is centred on the clock's phase 0 (x = 0 in
+          # _stance_mask), where Playground's feet_phase target is on the floor.
+          # The feet are pi apart, so below 0.5 both feet are meant to be in the
+          # air at once (a flight phase: hopping/running), and above 0.5 both are
+          # down for 2 * stance_fraction - 1 of the cycle.
+          stance_fraction=0.5,
           base_height_target=0.201,  # m; settled standing height at home.
       ),
       push_config=config_dict.create(
@@ -572,6 +580,7 @@ class GnociV2Joystick(GnociV2Env):
             self._config.reward_config.max_foot_height,
             info["command"],
         ),
+        "feet_contact": self._reward_feet_contact(contact, info["phase"]),
         # Other rewards.
         "alive": self._reward_alive(),
         "termination": self._cost_termination(done),
@@ -744,6 +753,24 @@ class GnociV2Joystick(GnociV2Env):
     # cmd_norm = jp.linalg.norm(commands)
     # reward *= cmd_norm > 0.1  # No reward for zero commands.
     return reward
+
+  def _stance_mask(self, phase: jax.Array) -> jax.Array:
+    # x = (phase + pi) / 2pi in [0, 1), as in gait.get_rz: the foot is meant to
+    # be in the air for the middle (1 - stance_fraction) of the cycle, centred on
+    # x = 0.5 where get_rz peaks, and on the floor either side of x = 0.
+    x = (phase + jp.pi) / (2 * jp.pi)
+    swing_half_width = (1.0 - self._config.reward_config.stance_fraction) / 2
+    return jp.abs(x - 0.5) >= swing_half_width
+
+  def _reward_feet_contact(
+      self, contact: jax.Array, phase: jax.Array
+  ) -> jax.Array:
+    # Each foot earns 1 when its contact matches the clock's stance mask and
+    # -0.3 when it doesn't (as Humanoid-Gym's feet_contact_number), averaged over
+    # the feet. Following the clock earns 1; standing on both feet, or hopping
+    # with both together, matches half the time at stance_fraction 0.5: 0.35.
+    match = contact == self._stance_mask(phase)
+    return jp.mean(jp.where(match, 1.0, -0.3))
 
   def sample_command(self, rng: jax.Array) -> jax.Array:
     rng1, rng2, rng3, rng4 = jax.random.split(rng, 4)
