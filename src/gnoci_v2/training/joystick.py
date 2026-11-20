@@ -75,7 +75,7 @@ def default_config() -> config_dict.ConfigDict:
           # The feet are pi apart, so below 0.5 both feet are meant to be in the
           # air at once (a flight phase: hopping/running), and above 0.5 both are
           # down for 2 * stance_fraction - 1 of the cycle.
-          stance_fraction=0.5,
+          stance_fraction=0.6,
           base_height_target=0.201,  # m; settled standing height at home.
       ),
       push_config=config_dict.create(
