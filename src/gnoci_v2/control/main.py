@@ -11,8 +11,8 @@ import time
 # Stop if the newest IMU reading is older than this, in seconds (5 IMU ticks).
 IMU_MAX_AGE = 0.05
 
-# Steps per second of each leg. Training sampled U(1.25, 1.5) per episode, so use the middle.
-GAIT_FREQ = 1.375
+# Gait cycles per second. Training samples U(1.65, 1.85) per episode, so use the middle.
+GAIT_FREQ = 1.75
 
 # Stop when the filter's tilt has been over fall_tilt for this many control
 # steps (0.1 s), so one bad reading (an impact jolts the filter) doesn't stop it.

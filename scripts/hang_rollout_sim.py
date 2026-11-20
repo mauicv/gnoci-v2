@@ -195,7 +195,7 @@ def main() -> None:
                       help="Seconds from observation to the target taking effect. Training"
                            " sampled 0 to 0.03.")
   parser.add_argument("--height", type=float, default=0.5,
-                      help="Torso height (m). Home is 0.2723 with the feet on the floor.")
+                      help="Torso height (m). Home is 0.206 with the feet on the floor.")
   parser.add_argument("--skip", type=int, default=25,
                       help="Steps left out of the summary stats, while the policy starts up.")
   parser.add_argument("--out", type=Path, default=None, help="Output .npz (the plot is next to it).")
