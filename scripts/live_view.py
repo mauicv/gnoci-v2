@@ -22,7 +22,7 @@ import mujoco.viewer
 import numpy as np
 
 from gnoci_v2.networking.client import Client
-from gnoci_v2.training.constants import SIM_PATH
+from gnoci_v2.sim_mj.constants import SIM_PATH
 
 SCENE = SIM_PATH / "desc" / "scene.xml"
 

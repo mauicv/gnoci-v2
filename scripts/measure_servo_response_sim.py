@@ -36,7 +36,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-from gnoci_v2.training.constants import SIM_PATH
+from gnoci_v2.sim_mj.constants import SIM_PATH
 
 SCENE = SIM_PATH / "desc" / "scene.xml"
 OUT_DIR = Path("logs/servo_step")

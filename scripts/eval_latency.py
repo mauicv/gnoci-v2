@@ -30,7 +30,7 @@ import jax
 import jax.numpy as jp
 import numpy as np
 
-from gnoci_v2.training import joystick
+from gnoci_v2.sim_mj import joystick
 from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy
 
 CHECKPOINTS = Path("checkpoints")

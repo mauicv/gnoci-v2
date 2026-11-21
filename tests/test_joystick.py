@@ -3,7 +3,7 @@ import jax.numpy as jp
 
 
 def test_joystick_imports_and_inits():
-  from gnoci_v2.training.joystick import GnociV2Joystick
+  from gnoci_v2.sim_mj.joystick import GnociV2Joystick
 
   env = GnociV2Joystick()
 
@@ -11,7 +11,7 @@ def test_joystick_imports_and_inits():
 
 
 def test_joystick_reset():
-  from gnoci_v2.training.joystick import GnociV2Joystick
+  from gnoci_v2.sim_mj.joystick import GnociV2Joystick
 
   env = GnociV2Joystick()
 
@@ -25,7 +25,7 @@ def test_joystick_reset():
 
 
 def test_joystick_step():
-  from gnoci_v2.training.joystick import GnociV2Joystick
+  from gnoci_v2.sim_mj.joystick import GnociV2Joystick
 
   env = GnociV2Joystick()
 

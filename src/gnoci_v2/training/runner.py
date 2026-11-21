@@ -8,9 +8,9 @@ import os
 # Must be set before jax is imported.
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
-from gnoci_v2.training import randomize
+from gnoci_v2.sim_mj import randomize
 from gnoci_v2.training.runner_base import BaseRunner
-from gnoci_v2.training import joystick
+from gnoci_v2.sim_mj import joystick
 
 
 class GnociV2Runner(BaseRunner):

@@ -32,7 +32,7 @@ import numpy as np
 
 from mujoco_playground._src import gait
 
-from gnoci_v2.training import joystick
+from gnoci_v2.sim_mj import joystick
 from gnoci_v2.training.constants import ENV_CONFIG_FILE
 from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy
 

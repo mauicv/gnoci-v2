@@ -40,7 +40,7 @@ import numpy as np
 
 from mujoco_playground._src.wrapper import BraxDomainRandomizationVmapWrapper
 
-from gnoci_v2.training import joystick, randomize
+from gnoci_v2.sim_mj import joystick, randomize
 from gnoci_v2.training.constants import ENV_CONFIG_FILE
 from gnoci_v2.training.convert import load_checkpoint, make_deterministic_policy
 

@@ -24,7 +24,7 @@ import mujoco
 from mujoco import mjx
 
 from mujoco_playground._src import mjx_env
-from gnoci_v2.training import constants as consts
+from gnoci_v2.sim_mj import constants as consts
 
 
 def get_assets() -> Dict[str, bytes]:

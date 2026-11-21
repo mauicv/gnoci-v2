@@ -31,7 +31,7 @@ import numpy as np
 from gnoci_v2.control.filter import ComplementaryFilter
 from gnoci_v2.control.main import GAIT_FREQ
 from gnoci_v2.control.predict import PolicyRunner
-from gnoci_v2.training.constants import SIM_PATH
+from gnoci_v2.sim_mj.constants import SIM_PATH
 
 SCENE = SIM_PATH / "desc" / "scene.xml"
 CTRL_DT, SIM_DT = 0.02, 0.002

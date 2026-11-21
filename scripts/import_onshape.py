@@ -39,7 +39,7 @@ import xml.etree.ElementTree as ET
 import mujoco
 import numpy as np
 
-DESC = pathlib.Path(__file__).resolve().parents[1] / "src/gnoci_v2/training/desc"
+DESC = pathlib.Path(__file__).resolve().parents[1] / "src/gnoci_v2/sim_mj/desc"
 SIDES = ("left", "right")
 LEG_JOINTS = ("hip_lat", "hip", "knee")
 LEG_BODIES = {"hip_lat": "hip", "hip": "upper_leg", "knee": "lower_leg"}

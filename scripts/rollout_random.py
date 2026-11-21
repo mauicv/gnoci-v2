@@ -11,7 +11,7 @@ import imageio_ffmpeg
 import jax
 import mediapy
 
-from gnoci_v2.training.joystick import GnociV2Joystick
+from gnoci_v2.sim_mj.joystick import GnociV2Joystick
 
 
 def main() -> None:

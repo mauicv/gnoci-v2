@@ -9,8 +9,8 @@ from mujoco.mjx._src import math
 from mujoco_playground._src import gait
 from mujoco_playground._src import mjx_env
 
-from gnoci_v2.training.base import GnociV2Env
-from gnoci_v2.training import constants as consts
+from gnoci_v2.sim_mj.base import GnociV2Env
+from gnoci_v2.sim_mj import constants as consts
 
 
 def default_config() -> config_dict.ConfigDict:

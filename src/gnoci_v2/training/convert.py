@@ -24,17 +24,26 @@ def load_checkpoint(path):
     return jax.tree.map(np.asarray, normalizer), jax.tree.map(np.asarray, policy)
 
 
-def make_deterministic_policy(normalizer, policy):
-    """Rebuilds the networks as training did; the checkpoint only has weights."""
+def make_ppo_network(obs_shapes, action_size=6):
+    """The PPO networks as training builds them.
+
+    obs_shapes: {"state": (31,), "privileged_state": (75,)}, the shape of each
+    observation the normalizer tracks.
+    """
     ppo_config = locomotion_params.brax_ppo_config(
         "BerkeleyHumanoidJoystickFlatTerrain"
     )  # TODO
-    ppo_network = ppo_networks.make_ppo_networks(
-        jax.tree.map(lambda x: x.shape, normalizer["mean"]),
-        action_size=6,
+    return ppo_networks.make_ppo_networks(
+        obs_shapes,
+        action_size=action_size,
         preprocess_observations_fn=running_statistics.normalize,
         **ppo_config.network_factory,
     )
+
+
+def make_deterministic_policy(normalizer, policy):
+    """Rebuilds the networks as training did; the checkpoint only has weights."""
+    ppo_network = make_ppo_network(jax.tree.map(lambda x: x.shape, normalizer["mean"]))
     make_policy = ppo_networks.make_inference_fn(ppo_network)
     inference_fn = make_policy(
         (running_statistics.RunningStatisticsState(**normalizer), policy),

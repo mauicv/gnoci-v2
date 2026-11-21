@@ -6,8 +6,8 @@ import mujoco
 from mujoco import mjx
 
 from mujoco_playground._src import mjx_env
-from gnoci_v2.training import constants as consts
-from gnoci_v2.training.base import get_assets
+from gnoci_v2.sim_mj import constants as consts
+from gnoci_v2.sim_mj.base import get_assets
 from typing import Any, Dict, Optional, Union
 
 from etils import epath

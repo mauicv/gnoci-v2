@@ -11,7 +11,7 @@ import argparse
 import pathlib
 import re
 
-from gnoci_v2.training.desc import masses
+from gnoci_v2.sim_mj.desc import masses
 
 ROBOT_XML = pathlib.Path(masses.__file__).with_name("robot.xml")
 GEOM_MASS = re.compile(r'(<geom\b[^>]*\bmesh="([^"]+)"[^>]*\bmass=")[^"]*(")')
