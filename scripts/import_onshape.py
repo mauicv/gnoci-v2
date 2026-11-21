@@ -1,4 +1,4 @@
-"""Turn an onshape-to-robot export into desc/robot.xml and desc/assets/.
+"""Turn an onshape-to-robot export into desc/robot.xml and the meshes in stls/.
 
 The export (robot.xml + assets/ written by onshape-to-robot) has the geometry: the
 parts, their placement and the joints. Everything tuned by hand comes from the
@@ -40,6 +40,7 @@ import mujoco
 import numpy as np
 
 DESC = pathlib.Path(__file__).resolve().parents[1] / "src/gnoci_v2/sim_mj/desc"
+STLS = pathlib.Path(__file__).resolve().parents[1] / "src/gnoci_v2/stls"
 SIDES = ("left", "right")
 LEG_JOINTS = ("hip_lat", "hip", "knee")
 LEG_BODIES = {"hip_lat": "hip", "hip": "upper_leg", "knee": "lower_leg"}
@@ -227,10 +228,10 @@ def main() -> None:
 
   # Replace the meshes.
   used = {mesh.get("file") for mesh in out.iter("mesh")}
-  for f in (DESC / "assets").glob("*.stl"):
+  for f in STLS.glob("*.stl"):
     f.unlink()
   for name in sorted(used):
-    shutil.copy2(args.export / "assets" / name, DESC / "assets" / name)
+    shutil.copy2(args.export / "assets" / name, STLS / name)
 
   print(f"Wrote {DESC / 'robot.xml'} and {len(used)} meshes")
   print(f"  hip_lat axes {np.linalg.norm(anchor['left_hip_lat'] - anchor['right_hip_lat']) * 1000:.1f} mm apart,"

@@ -4,7 +4,7 @@
      joint ranges are hand-maintained: the script copies them from the previous
      robot.xml. Masses come from masses.py (scripts/update_masses.py). -->
 <mujoco model="gnoci_v2">
-  <compiler angle="radian" meshdir="assets" autolimits="true" inertiagrouprange="2 2" />
+  <compiler angle="radian" meshdir="../../stls" autolimits="true" inertiagrouprange="2 2" />
   <option iterations="1" ls_iterations="5">
     <flag eulerdamp="disable" />
   </option>

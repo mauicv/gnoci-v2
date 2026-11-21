@@ -19,6 +19,9 @@ import pathlib
 from mujoco_playground._src import mjx_env
 
 SIM_PATH = pathlib.Path(__file__).parent
+# The robot's STL meshes, shared with anything else that needs the geometry.
+# desc/robot.xml points here with meshdir.
+STL_PATH = SIM_PATH.parent / "stls"
 
 FEET_SITES = [
     "l_foot",

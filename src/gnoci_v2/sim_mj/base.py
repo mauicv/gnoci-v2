@@ -31,7 +31,7 @@ def get_assets() -> Dict[str, bytes]:
   assets = {}
   path = consts.SIM_PATH / "desc"
   mjx_env.update_assets(assets, path, "*.xml")
-  mjx_env.update_assets(assets, path / "assets")
+  mjx_env.update_assets(assets, consts.STL_PATH)
   return assets
 
 
