@@ -1,0 +1,143 @@
+<?xml version="1.0" ?>
+<!-- gnoci v2 for tac (tac/io/mjcf.py): sim_mj/desc/robot.xml with everything tac's
+     loader doesn't support removed. Only the geometry is kept: the body tree, mesh
+     geoms, hinge joints, sites, the actuator -> joint mapping and the home keyframe.
+     Masses, servo and contact parameters are left out (tac learns them), as are the
+     sole collision spheres (tac takes the floor contacts from the lowest mesh
+     vertices). Meshes are shared with sim_mj in src/gnoci_v2/stls/. -->
+<mujoco model="gnoci_v2">
+  <compiler angle="radian" meshdir="../../stls" autolimits="true" />
+  <worldbody>
+    <body name="body_main" pos="0 0 0.202981" quat="1 0 0 0">
+      <freejoint name="floating_base" />
+      <site name="imu" pos="-0.0126187 0 0.04545" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="imu" />
+      <geom type="mesh" pos="-0.0116187 0 0.0120055" quat="1 0 -0 0" mesh="head_fan" />
+      <geom type="mesh" pos="-0.0116187 0 0.0123" quat="1 0 -0 0" mesh="head_powerboard" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_top" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_battery_lid" />
+      <geom type="mesh" pos="-0.0116187 -0.0002 0.0142" quat="1 0 -0 0" mesh="head_button" />
+      <geom type="mesh" pos="-0.0116187 0 0.0124163" quat="1 0 -0 0" mesh="urt_2_controller" />
+      <geom type="mesh" pos="-0.0116187 0 0.01218" quat="1 0 -0 0" mesh="head_voltmeter" />
+      <geom type="mesh" pos="-0.0114 0.0001962 0.0125" quat="1 0 -0 0" mesh="right_serv_1" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_1" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_2" />
+      <geom type="mesh" pos="-0.0114 -0.0001962 0.0125" quat="1 0 -0 0" mesh="left_serv_1" />
+      <geom type="mesh" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_main" />
+      <geom type="mesh" pos="-0.0116187 0 0.0142" quat="1 0 -0 0" mesh="head_r_pi" />
+      <geom type="mesh" pos="-0.0095994 3.6e-06 0.013" quat="1 0 -0 0" mesh="head_battery" />
+      <body name="left_hip" pos="0 0.0238038 0" quat="0.5 -0.5 -0.5 0.5">
+        <joint axis="0 0 -1" name="left_hip_lat" type="hinge" range="-0.23 0.628" />
+        <geom type="mesh" pos="-0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="left_hip" />
+        <geom type="mesh" pos="-0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_2" />
+        <geom type="mesh" pos="-0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn_back" />
+        <geom type="mesh" pos="-0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="left_serv_1_horn" />
+        <body name="left_upper_leg" pos="0.062788 -0.000195368 0.0321" quat="0.241845 -0.664463 -0.241845 0.664463">
+          <joint axis="0 0 -1" name="left_hip" type="hinge" range="-1.08 1.53" />
+          <geom type="mesh" pos="0.0207 0.0125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_2_horn_back" />
+          <geom type="mesh" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 0" mesh="left_upper_leg" />
+          <geom type="mesh" pos="0.0207 0.0125 0.086018" quat="0.707107 -0.707107 0 0" mesh="left_serv_3" />
+          <geom type="mesh" pos="0.0207 0.0125 0.0864" quat="0.707107 -0.707107 -0 -0" mesh="left_serv_2_horn" />
+          <body name="left_lower_leg" pos="-0 -0.1 -0.000382036" quat="0.866025 0 0 0.5">
+            <joint axis="0 0 -1" name="left_knee" type="hinge" range="-0.95 2.92" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn" />
+            <geom type="mesh" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 -0 0" mesh="left_foot_base" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0862" quat="0.707107 -0.707107 0 -0" mesh="left_foot_limit_switch_1" />
+            <geom type="mesh" pos="0.0211446 0.113722 0.0859" quat="0.707107 -0.707107 0 0" mesh="left_foot_tpu_layer" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_right_side" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0866" quat="0.707107 -0.707107 0 -0" mesh="left_serv_3_horn_back" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_foot_left_side" />
+            <geom type="mesh" pos="0.0207 0.1125 0.0864" quat="0.707107 -0.707107 0 -0" mesh="left_lower_leg" />
+            <site name="l_foot" pos="0.00677821 -0.137162 0.0102" />
+          </body>
+        </body>
+      </body>
+      <body name="right_hip" pos="0 -0.0238038 0" quat="0.5 -0.5 -0.5 0.5">
+        <joint axis="0 0 -1" name="right_hip_lat" type="hinge" range="-0.628 0.23" />
+        <geom type="mesh" pos="0.024 -0.0125 0.0118" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn_back" />
+        <geom type="mesh" pos="0.024 -0.0125 0.0116" quat="0.5 0.5 0.5 -0.5" mesh="right_hip" />
+        <geom type="mesh" pos="0.023612 -0.0126954 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_2" />
+        <geom type="mesh" pos="0.024 -0.0125 0.0114" quat="0.5 0.5 0.5 -0.5" mesh="right_serv_1_horn" />
+        <body name="right_upper_leg" pos="-0.062788 -0.000195368 0.0321" quat="0.664463 0.241845 0.664463 0.241845">
+          <joint axis="0 0 1" name="right_hip" type="hinge" range="-1.08 1.53" />
+          <geom type="mesh" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_upper_leg" />
+          <geom type="mesh" pos="0.0207 -0.0125 0.0866" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn_back" />
+          <geom type="mesh" pos="0.0207 -0.0125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_2_horn" />
+          <geom type="mesh" pos="0.0207 -0.0125 0.086018" quat="0.707107 0.707107 -0 0" mesh="right_serv_3" />
+          <body name="right_lower_leg" pos="-0 0.1 -0.000382036" quat="0.866025 -0 0 -0.5">
+            <joint axis="0 0 1" name="right_knee" type="hinge" range="-0.95 2.92" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0862" quat="0.707107 0.707107 -0 0" mesh="right_foot_limit_switch_1" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 -0 0" mesh="right_serv_3_horn" />
+            <geom type="mesh" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 -0 -0" mesh="right_foot_base" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_right_side" />
+            <geom type="mesh" pos="0.0211446 -0.113722 0.0859" quat="0.707107 0.707107 0 -0" mesh="right_foot_tpu_layer" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0866" quat="0.707107 0.707107 0 0" mesh="right_serv_3_horn_back" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_lower_leg" />
+            <geom type="mesh" pos="0.0207 -0.1125 0.0864" quat="0.707107 0.707107 0 0" mesh="right_foot_left_side" />
+            <site name="r_foot" pos="0.00677821 0.137162 0.0102" />
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <asset>
+    <mesh file="right_serv_3.stl" />
+    <mesh file="head_button.stl" />
+    <mesh file="left_foot_limit_switch_1.stl" />
+    <mesh file="urt_2_controller.stl" />
+    <mesh file="right_serv_3_horn.stl" />
+    <mesh file="right_foot_base.stl" />
+    <mesh file="left_serv_2.stl" />
+    <mesh file="left_upper_leg.stl" />
+    <mesh file="right_lower_leg.stl" />
+    <mesh file="body_main.stl" />
+    <mesh file="left_serv_2_horn_back.stl" />
+    <mesh file="mounting_2.stl" />
+    <mesh file="imu.stl" />
+    <mesh file="left_hip.stl" />
+    <mesh file="mounting_1.stl" />
+    <mesh file="right_hip.stl" />
+    <mesh file="left_foot_tpu_layer.stl" />
+    <mesh file="left_serv_1.stl" />
+    <mesh file="right_foot_limit_switch_1.stl" />
+    <mesh file="left_foot_left_side.stl" />
+    <mesh file="right_serv_1.stl" />
+    <mesh file="left_serv_1_horn.stl" />
+    <mesh file="body_top.stl" />
+    <mesh file="right_foot_tpu_layer.stl" />
+    <mesh file="left_serv_1_horn_back.stl" />
+    <mesh file="right_serv_3_horn_back.stl" />
+    <mesh file="left_serv_3_horn_back.stl" />
+    <mesh file="right_serv_2_horn_back.stl" />
+    <mesh file="head_battery.stl" />
+    <mesh file="left_lower_leg.stl" />
+    <mesh file="left_serv_2_horn.stl" />
+    <mesh file="left_foot_base.stl" />
+    <mesh file="left_foot_right_side.stl" />
+    <mesh file="body_battery_lid.stl" />
+    <mesh file="head_fan.stl" />
+    <mesh file="right_foot_left_side.stl" />
+    <mesh file="right_serv_2.stl" />
+    <mesh file="left_serv_3.stl" />
+    <mesh file="head_voltmeter.stl" />
+    <mesh file="right_serv_1_horn.stl" />
+    <mesh file="right_foot_right_side.stl" />
+    <mesh file="left_serv_3_horn.stl" />
+    <mesh file="right_upper_leg.stl" />
+    <mesh file="right_serv_2_horn.stl" />
+    <mesh file="right_serv_1_horn_back.stl" />
+    <mesh file="head_powerboard.stl" />
+    <mesh file="head_r_pi.stl" />
+  </asset>
+  <actuator>
+    <position name="left_hip_lat" joint="left_hip_lat" />
+    <position name="left_hip" joint="left_hip" />
+    <position name="left_knee" joint="left_knee" />
+    <position name="right_hip_lat" joint="right_hip_lat" />
+    <position name="right_hip" joint="right_hip" />
+    <position name="right_knee" joint="right_knee" />
+  </actuator>
+  <keyframe>
+    <key name="home" qpos="0 0 0.202981 1 0 0 0 0 0 0 0 0 0" ctrl="0 0 0 0 0 0" />
+  </keyframe>
+</mujoco>
