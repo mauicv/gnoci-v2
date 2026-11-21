@@ -23,6 +23,7 @@ sim = [
     "jax2onnx>=0.17.1",
     "jax[cuda]<0.10",
     "playground==0.2.0",
+    "tac",
 ]
 control = [
     "evdev>=2.0.0",
@@ -35,6 +36,9 @@ control = [
 
 [tool.uv]
 default-groups = ["dev"]
+
+[tool.uv.sources]
+tac = { path = "../../tac" }
 
 [project.scripts]
 gnoci = "gnoci_v2.cli:cli"
