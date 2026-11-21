@@ -42,7 +42,7 @@
       <!-- Part body_top -->
       <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_top" material="body_top_material" mass="0.052" />
       <!-- Part body_battery_lid -->
-      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_battery_lid" material="body_battery_lid_material" mass="0.015" />
+      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_battery_lid" material="body_battery_lid_material" mass="0.014" />
       <!-- Part head_button -->
       <geom type="mesh" class="visual" pos="-0.0116187 -0.0002 0.0142" quat="1 0 -0 0" mesh="head_button" material="head_button_material" mass="0.013" />
       <!-- Part urt_2_controller -->
@@ -52,13 +52,13 @@
       <!-- Part right_serv_1 -->
       <geom type="mesh" class="visual" pos="-0.0114 0.0001962 0.0125" quat="1 0 -0 0" mesh="right_serv_1" material="right_serv_1_material" mass="0.059" />
       <!-- Part mounting_1 -->
-      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_1" material="mounting_1_material" mass="0.012" />
+      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_1" material="mounting_1_material" mass="0.018" />
       <!-- Part mounting_2 -->
-      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_2" material="mounting_2_material" mass="0.007" />
+      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="mounting_2" material="mounting_2_material" mass="0.012" />
       <!-- Part left_serv_1 -->
       <geom type="mesh" class="visual" pos="-0.0114 -0.0001962 0.0125" quat="1 0 -0 0" mesh="left_serv_1" material="left_serv_1_material" mass="0.059" />
       <!-- Part body_main -->
-      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_main" material="body_main_material" mass="0.105" />
+      <geom type="mesh" class="visual" pos="-0.0116187 0 0.0121" quat="1 0 -0 0" mesh="body_main" material="body_main_material" mass="0.073" />
       <!-- Part head_r_pi -->
       <geom type="mesh" class="visual" pos="-0.0116187 0 0.0142" quat="1 0 -0 0" mesh="head_r_pi" material="head_r_pi_material" mass="0.066" />
       <!-- Part head_battery -->

@@ -5,11 +5,11 @@
 # the TPU sole as volume x 1.21 g/cm3 (solid TPU). Weigh them and replace the numbers.
 MASSES = {
     # torso
-    "body_main": 105.0,  # est. (old body_main: 166 g, 253 cm3; new 160 cm3)
+    "body_main": 73.0,
     "body_top": 52.0,  # est. (80 cm3)
-    "body_battery_lid": 15.0,  # est. (24 cm3, like the old 15 g lid)
-    "mounting_1": 12.0,  # est. (18 cm3)
-    "mounting_2": 7.0,  # est. (11 cm3)
+    "body_battery_lid": 14.0,
+    "mounting_1": 18.0,
+    "mounting_2": 12.0,
     "head_battery": 89.0,
     "head_button": 13.0,
     "head_fan": 6.0,

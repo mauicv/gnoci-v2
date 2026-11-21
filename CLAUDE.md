@@ -28,7 +28,7 @@ No linter or formatter is configured yet.
 
 Each has its usage in its docstring.
 - Sim2real comparison: `hang_rollout_sim.py` runs a policy in the sim with the torso fixed in the air (like the robot hung from its stand) and compares it with a robot recording from `gnoci run --record` (`--real`, plus `--replay` to apply the robot's actions open loop, `--real-imu`, `--action-delay`). `measure_servo_response_{real,sim}.py` compare a single-joint step response.
-- Policy analysis in the sim: `action_stats.py` (smoothness, joint speeds, falls), `eval_latency.py` (robustness to action/IMU delay).
+- Policy analysis in the sim: `action_stats.py` (smoothness, joint speeds, falls), `eval_latency.py` (robustness to action/IMU delay), `gait_compare.py` (foot height, contact timing and torso sway of several checkpoints side by side), `stability_eval.py` (fall rates with domain randomization and random pushes, and a push-strength sweep per direction, for several checkpoints).
 - Robot: `configure_servos.py`, `measure_imu_speed.py`, `measure_servo_read_speed.py`, and `live_view.py`, which shows the observations streamed by `gnoci run --stream` on the laptop.
 - Model: `import_onshape.py` turns an onshape-to-robot export (`onshape-to-robot/`) into `desc/robot.xml` and `desc/assets/`; then `update_masses.py` writes `desc/masses.py` into `robot.xml`.
 
