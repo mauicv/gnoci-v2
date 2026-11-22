@@ -6,7 +6,7 @@
 MASSES = {
     # torso
     "body_main": 73.0,
-    "body_top": 52.0,  # est. (80 cm3)
+    "body_top": 81.0,
     "body_battery_lid": 14.0,
     "mounting_1": 18.0,
     "mounting_2": 12.0,
@@ -23,12 +23,12 @@ MASSES = {
     "serv_horn": 1.0,
     "serv_horn_back": 1.0,
     # legs
-    "hip": 22.0,  # est. (old 18 g, 30 cm3; new 36 cm3)
-    "upper_leg": 40.0,  # est. (old 26 g, 35 cm3; new 54 cm3)
-    "lower_leg": 46.0,  # est. (old 45 g, 90 cm3; new 92 cm3)
-    "foot_base": 23.6,  # est. (old 11 g, 14 cm3; 2026-11-18 redesign 47 cm3 = 36 g; 2026-11-19 feet 30.6 cm3)
-    "foot_outer_side": 39.0,  # est. (60 cm3)
-    "foot_inner_side": 32.0,  # est. (50 cm3)
-    "foot_tpu_layer": 9.5,  # est. (8.1 cm3 of TPU, 2026-11-19 feet; was 13 g for 11.1 cm3)
+    "hip": 20.0,
+    "upper_leg": 26.0,
+    "lower_leg": 38.0,
+    "foot_base": 18.0,
+    "foot_outer_side": 30.0,
+    "foot_inner_side": 24.0, 
+    "foot_tpu_layer": 10.0,
     "foot_limit_switch": 3.0,
 }
