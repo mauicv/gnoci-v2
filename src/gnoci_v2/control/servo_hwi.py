@@ -41,6 +41,9 @@ class ServoHWI:
     UPPER_LIMITS = np.array([0.506, 1.11, 2.3, 0.245, 1.18, 2.19])
     # Keep targets this far (radians) inside the hard stops.
     LIMIT_MARGIN = 0.05
+    # Tries per sync read. Electrical noise on the bus can corrupt one servo's
+    # reply ("motor 5: Parsing error"), and one corrupt packet shouldn't stop a run.
+    READ_TRIES = 3
 
     def __init__(self,
             port='/dev/serial0',
@@ -55,6 +58,8 @@ class ServoHWI:
         self.kps = [32 for _ in range(len(self.SERVO_IDS))]  # default kp
         self.kds = [0 for _ in range(len(self.SERVO_IDS))]  # default kp
         self.low_torque_kps = [1 for _ in range(len(self.SERVO_IDS))]
+        # How many sync reads failed and were tried again.
+        self.read_retries = 0
 
 
     def get_id_from_name(self, name):
@@ -104,11 +109,29 @@ class ServoHWI:
         update_pos = self.SIGNS * clamped + self.INITIAL_POSITIONS
         self.controller.sync_write_goal_position(self.SERVO_IDS, update_pos.tolist())
 
+    def _sync_read(self, read, *args):
+        """Calls read(*args), trying again if a reply is corrupt or missing."""
+        for attempt in range(self.READ_TRIES):
+            try:
+                return read(*args)
+            except (RuntimeError, OSError) as error:
+                if attempt == self.READ_TRIES - 1:
+                    raise
+                self.read_retries += 1
+                print(f"Servo read failed ({error}), trying again")
+
     def get_positions(self):
         """Returns joint angles in sim order and sim convention."""
-        values = self.controller.sync_read_present_position(self.SERVO_IDS)
+        values = self._sync_read(self.controller.sync_read_present_position, self.SERVO_IDS)
         return (self.SIGNS * (np.array(values) - self.INITIAL_POSITIONS)).tolist()
 
     def get_velocities(self):
-        values = self.controller.sync_read_present_velocity(self.SERVO_IDS)
+        values = self._sync_read(self.controller.sync_read_present_velocity, self.SERVO_IDS)
         return (self.SIGNS * np.array(values)).tolist()
+
+    def get_voltages(self):
+        """Returns each servo's supply voltage in volts, in sim joint order."""
+        values = self._sync_read(
+            self.controller.sync_read_register, self.SERVO_IDS, "present_voltage"
+        )
+        return np.array(values) * 0.1  # The register counts in 0.1 V.

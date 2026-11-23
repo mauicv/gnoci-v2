@@ -123,6 +123,14 @@ class Main:
             phase_obs
         ))
 
+    def read_voltages(self):
+        """The servos' supply voltages, or NaNs if the read fails: it's only for the record."""
+        try:
+            return self.servo_hwi.get_voltages()
+        except RuntimeError as error:
+            print(f"Voltage read failed: {error}")
+            return np.full(len(self.servo_hwi.SERVO_IDS), np.nan)
+
     def tilt(self):
         """Degrees from upright, from the filter's gravity at the latest observation."""
         return float(np.degrees(np.arccos(np.clip(-self.gravity[2], -1.0, 1.0))))
@@ -155,7 +163,8 @@ class Main:
             if self.close_loop:
                 self.servo_hwi.set_positions(target)
             if recorder is not None:
-                recorder.add(start_time, observation, action, target, self.gravity, self.accel)
+                recorder.add(start_time, observation, action, target, self.gravity,
+                             self.accel, self.read_voltages())
 
             if self.fall_tilt:
                 tilted_steps = tilted_steps + 1 if self.tilt() > self.fall_tilt else 0

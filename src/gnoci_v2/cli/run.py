@@ -136,6 +136,10 @@ def run(model_name, close_loop, torque_off, verbose, host, port, stream, record,
                 print("Nothing recorded")
             else:
                 print(f"Recorded {len(recorder.t)} steps to {path}")
+                print("Servo voltages:")
+                print(recorder.voltage_summary(main.servo_hwi.SERVO_NAMES))
+        if main.servo_hwi.read_retries:
+            print(f"Servo reads tried again: {main.servo_hwi.read_retries}")
         print("Stopped")
 
 
