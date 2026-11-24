@@ -48,7 +48,11 @@ class ServoHWI:
     def __init__(self,
             port='/dev/serial0',
             baudrate=1_000_000,
-            timeout=0.1,
+            # Seconds to wait for a reply. A sync read of all six answers in
+            # about 1 ms, and a corrupt or lost reply waits out the full timeout
+            # before READ_TRIES tries again: at 0.1 s that froze the control
+            # loop for about 120 ms per error (logs/power/run1.npz).
+            timeout=0.01,
         ):
         self.controller = Sts3215PyController(
             serial_port=port,
