@@ -44,6 +44,8 @@ class ServoHWI:
     # Tries per sync read. Electrical noise on the bus can corrupt one servo's
     # reply ("motor 5: Parsing error"), and one corrupt packet shouldn't stop a run.
     READ_TRIES = 3
+    # Seconds to wait before trying again.
+    RETRY_PAUSE = 0.003
 
     def __init__(self,
             port='/dev/serial0',
@@ -51,8 +53,9 @@ class ServoHWI:
             # Seconds to wait for a reply. A sync read of all six answers in
             # about 1 ms, and a corrupt or lost reply waits out the full timeout
             # before READ_TRIES tries again: at 0.1 s that froze the control
-            # loop for about 120 ms per error (logs/power/run1.npz).
-            timeout=0.01,
+            # loop for about 120 ms per error (logs/power/run1.npz). 0.01 s was
+            # too short: three failed reads in a row stopped a run.
+            timeout=0.02,
         ):
         self.controller = Sts3215PyController(
             serial_port=port,
@@ -116,13 +119,18 @@ class ServoHWI:
     def _sync_read(self, read, *args):
         """Calls read(*args), trying again if a reply is corrupt or missing."""
         for attempt in range(self.READ_TRIES):
+            start = time.perf_counter()
             try:
                 return read(*args)
             except (RuntimeError, OSError) as error:
+                took = (time.perf_counter() - start) * 1000
                 if attempt == self.READ_TRIES - 1:
                     raise
                 self.read_retries += 1
-                print(f"Servo read failed ({error}), trying again")
+                print(f"Servo read failed after {took:.1f} ms ({error}), trying again")
+                # Let the rest of a late reply arrive, so the next read
+                # doesn't parse its bytes as the start of its own reply.
+                time.sleep(self.RETRY_PAUSE)
 
     def get_positions(self):
         """Returns joint angles in sim order and sim convention."""
