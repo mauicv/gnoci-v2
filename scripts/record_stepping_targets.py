@@ -34,8 +34,8 @@ from gnoci_v2.sim_mj.constants import SIM_PATH
 SCENE = SIM_PATH / "desc" / "scene.xml"
 CTRL_DT, SIM_DT = 0.02, 0.002
 JOINTS = ["left_hip_lat", "left_hip", "left_knee", "right_hip_lat", "right_hip", "right_knee"]
-# The robot's filter: alpha 0.98 at 300 Hz, a time constant of about 0.163 s.
-FILTER_TAU = 0.98 * (1 / 300) / (1 - 0.98)
+# The robot's filter time constant (imu_hwi.FILTER_TAU).
+FILTER_TAU = 1.0
 BINS = 50
 
 

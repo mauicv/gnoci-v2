@@ -29,6 +29,9 @@ ACCEL_LSB_PER_G = 8192.0
 
 OFFSETS_PATH = Path(__file__).with_name("imu_offsets.json")
 
+# The complementary filter's time constant, in seconds.
+FILTER_TAU = 1.0
+
 # measure_offsets refuses to save if the robot is further than this from level
 # (about 9 degrees) or the gyro is noisier than this, which means it was moving.
 MAX_LEVEL_ERROR_G = 0.15
@@ -68,7 +71,11 @@ class IMUHWI:
             self.load_offsets()
         self.bus = smbus.SMBus(1)
         init_mpu6050(self.bus)
-        self.filter = ComplementaryFilter(dt=dt)
+        # Time constant 1 s. At 0.163 s (alpha 0.98 at 300 Hz) the torso's
+        # sideways sway while stepping read as 4-8 deg of false roll; at 1 s
+        # it's about 1 deg (logs/stepping/robot-1.npz). Training uses the
+        # true gravity, so less filter error is closer to training.
+        self.filter = ComplementaryFilter(alpha=FILTER_TAU / (FILTER_TAU + dt), dt=dt)
 
     def load_offsets(self):
         try:

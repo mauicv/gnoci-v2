@@ -213,8 +213,8 @@ def run_sim(targets, amp, freq, seg, phase, log):
   act = [model.actuator(j).id for j in joints]
   gyro_adr = model.sensor_adr[model.sensor("gyro").id]
   acc_adr = model.sensor_adr[model.sensor("accelerometer").id]
-  # The robot's filter (alpha 0.98 at 300 Hz), run every physics step.
-  tau = 0.98 * (1 / 300) / (1 - 0.98)
+  # The robot's filter (imu_hwi.FILTER_TAU), run every physics step.
+  tau = 1.0
   filt = ComplementaryFilter(alpha=tau / (tau + sim_dt), dt=sim_dt)
 
   def sensors():
