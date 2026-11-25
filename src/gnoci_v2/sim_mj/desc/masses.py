@@ -32,3 +32,10 @@ MASSES = {
     "foot_tpu_layer": 10.0,
     "foot_limit_switch": 3.0,
 }
+
+# Added to the torso's centre of mass as computed from its meshes (m, torso frame:
+# x forward). The robot is front-heavy: scripts/lean_test.py --forwards tipped at a
+# lean that the sim only matches with the torso's centre of mass 48 mm further
+# forward (logs/lean/robot-forwards-{1,2,3}.npz, 2026-11-25; about +23 mm for the
+# whole robot). Servo zero errors of 0.05 rad move that estimate by up to ~10 mm.
+TORSO_COM_OFFSET = (0.048, 0.0, 0.0)

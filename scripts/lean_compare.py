@@ -1,9 +1,14 @@
 """Estimates the robot's centre of mass from scripts/lean_test.py recordings.
 
-For each robot recording it finds the lean at which the feet started to tip
-(foot pitch changed by more than --tip degrees), runs the same lean test in the
+For each robot recording it finds the lean at which the feet started to tip,
+runs the same lean test in the
 sim with the torso's centre of mass shifted by each of --com-x mm, and
 interpolates the shift at which the sim tips at the robot's lean.
+
+The robot's foot pitch drifts steadily as it leans (flex in the soles and legs,
+a few degrees per rad, about 10x the sim's), so a fixed threshold catches the
+drift, not the tip. Instead a line is fitted to the first 60% of the lean and
+the tip is where the foot pitch leaves that line by more than --tip degrees.
 
 The lean is measured from the joints (the measured angles projected onto the
 lean direction), not the targets, so servos sagging under load don't count as
@@ -37,13 +42,19 @@ def measured_lean(d):
 
 
 def tip_lean(d, tip):
-  """(measured lean, target lean) when the foot pitch first changed by more than tip deg."""
-  foot = np.abs(d["foot_pitch"])
-  leaning = d["phase"] == 1
-  hits = np.where(leaning & (foot > tip))[0]
+  """(measured lean, target lean) where the foot pitch leaves its early drift line by tip deg."""
+  idx = np.where(d["phase"] == 1)[0]
+  x, y = measured_lean(d)[idx], d["foot_pitch"][idx]
+  early = x < 0.6 * x.max()
+  if early.sum() < 10:
+    return None
+  slope, offset = np.polyfit(x[early], y[early], 1)
+  # Smoothed a little, against the robot's IMU noise.
+  off_line = np.convolve(np.abs(y - (slope * x + offset)), np.ones(9) / 9, mode="same")
+  hits = np.where((off_line > tip) & (x > 0.05))[0]
   if not len(hits):
     return None
-  k = hits[0]
+  k = idx[hits[0]]
   return float(measured_lean(d)[k]), float(d["lean"][k])
 
 
@@ -60,7 +71,8 @@ def main():
   p.add_argument("robot", type=Path, nargs="+")
   p.add_argument("--com-x", type=float, nargs="+", default=list(range(-50, 51, 10)),
                  help="Torso centre-of-mass shifts (mm, + forward) to run in the sim.")
-  p.add_argument("--tip", type=float, default=2.0, help="Foot pitch change (deg) that counts as tipping.")
+  p.add_argument("--tip", type=float, default=1.0,
+                 help="Degrees the foot pitch must leave its early drift line by to count as tipping.")
   args = p.parse_args()
 
   model = lean_test.sim_model(0.0)
@@ -111,8 +123,6 @@ def main():
     m = real["phase"] >= 1
     ax.plot(measured_lean(real)[m], real["foot_pitch"][m], "k", lw=2, label=f"robot {path.stem}")
   for way, ax in ax_curve.items():
-    ax.axhline(args.tip, color="grey", ls=":")
-    ax.axhline(-args.tip, color="grey", ls=":")
     ax.set_title(f"{way}: foot pitch change vs lean")
     ax.set_xlabel("lean, measured from the joints (rad)")
     ax.set_ylabel("foot pitch change (deg)")
