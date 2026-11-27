@@ -31,8 +31,8 @@
   <worldbody>
     <body name="body_main" pos="0 0 0.202981" quat="1 0 0 0" childclass="gnoci_v2">
       <!-- Torso inertial, written by scripts/update_masses.py: mass and inertia from the
-           meshes, centre of mass from the meshes + TORSO_COM_OFFSET (0.048 0 0 m). -->
-      <inertial pos="0.0190595 -0.000814337 0.0596347" quat="0.930789 0.00118112 -0.0840732 0.355756" mass="0.529" diaginertia="0.00100103 0.000973934 0.000562484" />
+           meshes, centre of mass from the meshes + TORSO_COM_OFFSET (-0.006 0 0 m). -->
+      <inertial pos="-0.0349405 -0.000814337 0.0596347" quat="0.930789 0.00118112 -0.0840732 0.355756" mass="0.529" diaginertia="0.00100103 0.000973934 0.000562484" />
       <freejoint name="floating_base" />
       <camera name="track" mode="trackcom" pos="0.6 -0.6 0.2" xyaxes="0.7071 0.7071 0 -0.1231 0.1231 0.9847" />
       <site name="imu" pos="-0.0126187 0 0.04545" group="5" />

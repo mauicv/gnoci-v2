@@ -82,10 +82,12 @@ def main():
   import matplotlib
   matplotlib.use("Agg")
   import matplotlib.pyplot as plt
-  fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+  fig, axes = plt.subplots(1, 2, figsize=(17, 5.5))
   ax_curve = {"forwards": axes[0], "backwards": axes[1]}
 
+  lo, hi = min(args.com_x), max(args.com_x) + 1e-9
   sims = {}
+  plotted = set()
   for path in args.robot:
     real = dict(np.load(path))
     if bool(real.get("sim", False)):
@@ -115,19 +117,23 @@ def main():
         print(f"  robot tipped at lean {got[0]:.3f}, outside the sim's range"
               f" {ts.min():.3f}-{ts.max():.3f}: widen --com-x")
 
+    # Only the leaning phase: the return to home would draw a line back across.
     ax = ax_curve[way]
-    for c, s in sims[way].items():
-      m = s["phase"] >= 1
-      ax.plot(measured_lean(s)[m], s["foot_pitch"][m], color=plt.cm.coolwarm((c + 50) / 100),
-              lw=1, label=f"sim {c:+g} mm")
-    m = real["phase"] >= 1
-    ax.plot(measured_lean(real)[m], real["foot_pitch"][m], "k", lw=2, label=f"robot {path.stem}")
+    if way not in plotted:
+      plotted.add(way)
+      for c, s in sims[way].items():
+        m = s["phase"] == 1
+        ax.plot(measured_lean(s)[m], s["foot_pitch"][m], color=plt.cm.coolwarm((c - lo) / (hi - lo)),
+                lw=1, label=f"sim {c:+g} mm")
+    m = real["phase"] == 1
+    ax.plot(measured_lean(real)[m], real["foot_pitch"][m], color="k", lw=1.5,
+            ls=["-", "--", ":", "-."][len(ax.lines) % 4], label=f"robot {path.stem}")
   for way, ax in ax_curve.items():
-    ax.set_title(f"{way}: foot pitch change vs lean")
     ax.set_xlabel("lean, measured from the joints (rad)")
     ax.set_ylabel("foot pitch change (deg)")
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=7, ncol=2)
+    ax.set_title(f"{way}: foot pitch change vs lean (sim: torso COM shift vs the model)")
+    ax.legend(fontsize=7, loc="upper left", bbox_to_anchor=(1.01, 1))
   out = args.robot[0].with_name("lean_compare.png")
   fig.tight_layout()
   fig.savefig(out, dpi=100)

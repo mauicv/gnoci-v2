@@ -34,8 +34,11 @@ MASSES = {
 }
 
 # Added to the torso's centre of mass as computed from its meshes (m, torso frame:
-# x forward). The robot is front-heavy: scripts/lean_test.py --forwards tipped at a
-# lean that the sim only matches with the torso's centre of mass 48 mm further
-# forward (logs/lean/robot-forwards-{1,2,3}.npz, 2026-11-25; about +23 mm for the
-# whole robot). Servo zero errors of 0.05 rad move that estimate by up to ~10 mm.
-TORSO_COM_OFFSET = (0.048, 0.0, 0.0)
+# x forward). From scripts/lean_test.py after the servo zeros were corrected
+# (logs/lean/robot-{forward,backwards}-{0,1,2}.npz, 2026-11-27): the robot tips
+# forwards at a lean of 0.33-0.41 and backwards at 0.39-0.43. Fitting the torso's
+# centre of mass and the feet's support length together matches both with the
+# CAD centre of mass 6 mm further back, and feet that support about 13 mm less at
+# each end than the sole spheres (not yet in the model). The 2026-11-25 estimate
+# (+48 mm) came from runs with zero errors that stopped before a real tip.
+TORSO_COM_OFFSET = (-0.006, 0.0, 0.0)
