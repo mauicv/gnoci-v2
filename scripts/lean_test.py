@@ -41,8 +41,11 @@ import numpy as np
 FORWARD_DIRECTION = np.array([0.0, 0.0, -1.0, 0.0, 0.0, -1.0])
 BACKWARD_DIRECTION = np.array([0.0, -1.0, 1.0, 0.0, -1.0, 1.0])
 LEAN_RATE = 0.01       # rad/s along the direction (slow: the filter lags about tau x rate)
-MAX_LEAN = 0.9         # rad: stop here even if it hasn't tipped
-STOP_TILT = 4.0        # degrees of foot pitch change from the start: stop and go back
+MAX_LEAN = 1.6         # rad: stop here even if it hasn't tipped (backwards, the hip
+                       # clamps at about 0.8 but the knee keeps going to about 2.2)
+STOP_TILT = 15.0       # degrees of foot pitch change from the start: stop and go back
+                       # (the rounded soles and flex make it drift several degrees
+                       # before it really tips, so this is a backstop for STOP_RATE)
 STOP_RATE = 0.6        # rad/s of pitch rate (gyro y): stop and go back
 SETTLE_SECONDS = 3.0   # standing at home before leaning, also the baseline
 RETURN_SPEED = 0.5     # rad/s back to home after stopping
